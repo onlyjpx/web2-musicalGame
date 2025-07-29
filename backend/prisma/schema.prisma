@@ -1,0 +1,39 @@
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+model Usuario {
+  id        Int        @id @default(autoincrement())
+  nome      String
+  email     String     @unique
+  senha     String
+  tipo      String     // "admin" ou "usuario"
+  tentativas Tentativa[]
+}
+
+model Desafio {
+  id          Int         @id @default(autoincrement())
+  nomeMusica  String
+  artista     String
+  album       String
+  genero      String
+  previewUrl  String
+  dificuldade Int
+  tentativas  Tentativa[]
+}
+
+model Tentativa {
+  id            Int      @id @default(autoincrement())
+  usuarioId     Int
+  desafioId     Int
+  acertou       Boolean
+  tempoResposta Int?
+  pontos        Int
+  usuario       Usuario @relation(fields: [usuarioId], references: [id])
+  desafio       Desafio @relation(fields: [desafioId], references: [id])
+}
