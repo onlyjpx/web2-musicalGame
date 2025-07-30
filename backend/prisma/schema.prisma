@@ -8,23 +8,22 @@ generator client {
 }
 
 model Usuario {
-  id        Int        @id @default(autoincrement())
-  nome      String
-  email     String     @unique
-  senha     String
-  tipo      String     // "admin" ou "usuario"
+  id         Int         @id @default(autoincrement())
+  nome       String
+  email      String      @unique
+  senha      String      
+  tipo       String      // "admin" ou "usuario"
   tentativas Tentativa[]
+  musicasCriadas Musica[] @relation("UsuarioMusicasCriadas")
 }
 
 model Desafio {
-  id          Int         @id @default(autoincrement())
-  nomeMusica  String
-  artista     String
-  album       String
+  id          Int              @id @default(autoincrement())
+  titulo      String
   genero      String
-  previewUrl  String
-  dificuldade Int
+  dificuldade Dificuldade
   tentativas  Tentativa[]
+  musicas     DesafioMusica[]
 }
 
 model Tentativa {
@@ -32,8 +31,43 @@ model Tentativa {
   usuarioId     Int
   desafioId     Int
   acertou       Boolean
-  tempoResposta Int?
+  tempoResposta Float?   
   pontos        Int
-  usuario       Usuario @relation(fields: [usuarioId], references: [id])
-  desafio       Desafio @relation(fields: [desafioId], references: [id])
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  desafio       Desafio  @relation(fields: [desafioId], references: [id], onDelete: Cascade)
+}
+
+model Musica {
+  id           Int             @id @default(autoincrement())
+  spotifyId    String          @unique
+  nomeCorreto  String
+  artista      String
+  album        String
+  duracaoMs    Int?
+  popularidade Int?
+  urlPreview   String
+  imagemUrl    String?
+  urlSpotify   String?
+  criadoEm     DateTime        @default(now())
+  criadoPorId  Int?
+  criadoPor    Usuario?        @relation("UsuarioMusicasCriadas", fields: [criadoPorId], references: [id])
+  desafios     DesafioMusica[]
+}
+
+model DesafioMusica {
+  id         Int     @id @default(autoincrement())
+  desafioId  Int
+  musicaId   Int
+  desafio    Desafio @relation(fields: [desafioId], references: [id], onDelete: Cascade)
+  musica     Musica  @relation(fields: [musicaId], references: [id], onDelete: Cascade)
+
+  @@unique([desafioId, musicaId])
+}
+
+enum Dificuldade {
+  FACIL
+  MEDIO
+  DIFICIL
+  MUITO_DIFICIL
+  EXTREMO
 }
