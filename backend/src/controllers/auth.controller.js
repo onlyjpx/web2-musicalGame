@@ -18,7 +18,7 @@ export async function registrar(req, res) {
             },
         });
 
-        const token = gerarToken({ id: novoUsuario.id, email: novoUsuario.email });
+        const token = gerarToken({ id: novoUsuario.id, email: novoUsuario.email, tipo: novoUsuario.tipo });
         res.status(201).json({ usuario: novoUsuario, token });
 
     }   catch(error){
@@ -36,7 +36,7 @@ export async function login(req, res){
         const senhaValida = await bcrypt.compare(senha, usuario.senha);
         if (!senhaValida) return res.status(401).json({ error: "Senha incorreta" });
 
-        const token = gerarToken({ id: usuario.id, email: usuario.email });
+        const token = gerarToken({ id: usuario.id, email: usuario.email, tipo: usuario.tipo });
         res.status(200).json({ usuario, token });
     }catch(error){
         console.error("Erro ao fazer login:", error);
