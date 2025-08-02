@@ -3,7 +3,7 @@ import prisma from '../prisma/client.js';
 export async function listarDesafios(req, res) {
     try {
         const desafios = await prisma.desafio.findMany({
-            include: { musica: { include: {musica: true } } },
+            include: { musicas: { include: {musica: true } } },
         });
         res.json(desafios);
     }catch (error) {
@@ -43,7 +43,7 @@ export async function obterDesafios(req, res) {
     try {
         const desafio = await prisma.desafio.findUnique({
             where: { id: Number(id) },
-            include: {musica: { include: {musica: true } } },
+            include: {musicas: { include: {musica: true } } },
         });
         if (!desafio) return res.status(404).json({ error: "Desafio não encontrado" });
         res.json(desafio);

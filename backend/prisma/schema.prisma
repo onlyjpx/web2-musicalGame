@@ -14,7 +14,6 @@ model Usuario {
   senha      String      
   tipo       String      // "admin" ou "usuario"
   tentativas Tentativa[]
-  musicasCriadas Musica[] @relation("UsuarioMusicasCriadas")
 }
 
 model Desafio {
@@ -37,31 +36,13 @@ model Tentativa {
   desafio       Desafio  @relation(fields: [desafioId], references: [id], onDelete: Cascade)
 }
 
-model Musica {
-  id           Int             @id @default(autoincrement())
-  spotifyId    String          @unique
-  nomeCorreto  String
-  artista      String
-  album        String
-  duracaoMs    Int?
-  popularidade Int?
-  urlPreview   String
-  imagemUrl    String?
-  urlSpotify   String?
-  criadoEm     DateTime        @default(now())
-  criadoPorId  Int?
-  criadoPor    Usuario?        @relation("UsuarioMusicasCriadas", fields: [criadoPorId], references: [id])
-  desafios     DesafioMusica[]
-}
-
 model DesafioMusica {
   id         Int     @id @default(autoincrement())
   desafioId  Int
-  musicaId   Int
+  spotifyId   Int
   desafio    Desafio @relation(fields: [desafioId], references: [id], onDelete: Cascade)
-  musica     Musica  @relation(fields: [musicaId], references: [id], onDelete: Cascade)
 
-  @@unique([desafioId, musicaId])
+  @@unique([desafioId, spotifyId])
 }
 
 enum Dificuldade {
