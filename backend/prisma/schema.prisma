@@ -39,10 +39,10 @@ model Tentativa {
 model DesafioMusica {
   id         Int     @id @default(autoincrement())
   desafioId  Int
-  spotifyId   Int
+  deezerId   String
   desafio    Desafio @relation(fields: [desafioId], references: [id], onDelete: Cascade)
 
-  @@unique([desafioId, spotifyId])
+  @@unique([desafioId, deezerId])
 }
 
 enum Dificuldade {

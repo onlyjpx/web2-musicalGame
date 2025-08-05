@@ -1,0 +1,18 @@
+# Força todos os arquivos de texto a usarem LF no repositório
+* text=auto eol=lf
+
+# Mantém arquivos de imagem/binários como estão
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary
+*.ico binary
+
+# Evita alteração de line endings em arquivos de dados
+*.sql text eol=lf
+*.prisma text eol=lf
+*.json text eol=lf
+*.js text eol=lf
+*.ts text eol=lf
+*.css text eol=lf
+*.html text eol=lf
