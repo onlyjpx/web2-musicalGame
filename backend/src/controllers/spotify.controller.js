@@ -1,7 +1,7 @@
 import axios from 'axios';
 import { getSpotifyToken } from '../services/spotify.service.js';
 
-export async function buscarMusicas(req, res){
+export const buscarMusicas = async (req, res) => {
     try{
         const { query } = req.query;
         if (!query) {

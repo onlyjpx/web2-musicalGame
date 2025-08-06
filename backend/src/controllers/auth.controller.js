@@ -2,7 +2,7 @@ import bcrypt from 'bcrypt';
 import prisma from '../prisma/client.js';
 import { gerarToken } from '../utils/token.js';
 
-export async function registrar(req, res) {
+export const registrar = async (req, res) => {
     try{
         const {nome, email, senha, tipo} = req.body;
         const usuarioExistente = await prisma.usuario.findUnique({where : { email}});
@@ -27,7 +27,7 @@ export async function registrar(req, res) {
     }
 }
 
-export async function login(req, res){
+export const login = async (req, res) => {
     try{
         const { email, senha } = req.body;
         const usuario = await prisma.usuario.findUnique({ where: { email } });

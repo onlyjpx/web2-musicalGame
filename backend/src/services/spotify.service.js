@@ -3,7 +3,7 @@ import axios from "axios";
 let spotifyToken = null;
 let tokenExpiracao = 0;
 
-export async function getSpotifyToken() {
+export const getSpotifyToken = async () => {
   const agora = Date.now();
   if (spotifyToken && agora < tokenExpiracao) {
     return spotifyToken;

@@ -1,6 +1,6 @@
 import prisma from '../prisma/client.js';
 
-export async function listarDesafios(req, res) {
+export const listarDesafios = async (req, res) => {
     try {
         const desafios = await prisma.desafio.findMany({
             include: { musicas: { include: {musica: true } } },
@@ -12,7 +12,7 @@ export async function listarDesafios(req, res) {
     }
 }
 
-export async function criarDesafio(req, res) {
+export const criarDesafio = async (req, res) => {
     try {
         const { titulo, genero, dificuldade } = req.body;
 
@@ -38,7 +38,7 @@ export async function criarDesafio(req, res) {
     }
 }
 
-export async function obterDesafios(req, res) {
+export const obterDesafios = async (req, res) => {
     const { id } = req.params;
     try {
         const desafio = await prisma.desafio.findUnique({
@@ -53,7 +53,7 @@ export async function obterDesafios(req, res) {
     }
 }
 
-export async function atualizarDesafio(req, res) {
+export const atualizarDesafio = async (req, res) => {
     const { id } = req.params;
     const { titulo, genero, dificuldade } = req.body;
 
@@ -79,7 +79,7 @@ export async function atualizarDesafio(req, res) {
     }
 }
 
-export async function deletarDesafio(req, res) {
+export const deletarDesafio = async (req, res) => {
     const { id } = req.params;
     if (req.usuario.tipo !== "admin") {
         return res.status(403).json({ error: "Acesso negado: apenas administradores podem deletar desafios" });

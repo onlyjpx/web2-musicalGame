@@ -1,6 +1,6 @@
 import { verificarToken } from "../utils/token.js";
 
-export function autenticar(req, res, next) {
+export const autenticar = async (req, res, next) => {
   const authHeader = req.headers.authorization;
 
   if (!authHeader) {
