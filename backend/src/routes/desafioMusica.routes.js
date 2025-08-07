@@ -5,7 +5,7 @@ import { adicionarMusicaAoDesafio, listarMusicasDoDesafio, deletarMusicaDoDesafi
 const router = express.Router();
 
 router.post("/:id", autenticar, adicionarMusicaAoDesafio);
-router.get("/:id", autenticar, listarMusicasDoDesafio);
+router.get("/:id", listarMusicasDoDesafio);
 router.delete("/:id", autenticar, deletarMusicaDoDesafio);
 
 export default router;
