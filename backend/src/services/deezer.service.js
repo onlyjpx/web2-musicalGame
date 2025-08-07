@@ -21,12 +21,24 @@ export const buscarMusicaDeezer = async (musicaNome, artistaNome) => {
 
     return {
         deezerId: musica.id,
-        titulo: musica.title,
-        artista: musica.artist.name,
-        album: musica.album.title,
-        imagem: musica.album.cover,
-        preview: musica.preview,
-        duracao: musica.duration,
-        link: musica.link,
     };
+}
+
+export const buscarMusicaDeezerPorId = async (deezerId) => {
+    const response = await axios.get(`https://api.deezer.com/track/${deezerId}`);
+
+    if (!response.data) {
+        return null;
+    }
+
+    return {
+        deezerId: response.data.id,
+        titulo: response.data.title,
+        artista: response.data.artist.name,
+        album: response.data.album.title,
+        imagem: response.data.album.cover,
+        preview: response.data.preview,
+        duracao: response.data.duration,
+        link: response.data.link,
+    }
 }

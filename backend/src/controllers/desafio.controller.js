@@ -89,7 +89,7 @@ export const deletarDesafio = async (req, res) => {
         if (!desafioExistente) return res.status(404).json({ error: "Desafio não encontrado" });
 
         const desafioDeletado = await prisma.desafio.delete({ where: { id: Number(id) } });
-        res.json({ message: "Desafio deletado com sucesso", desafio: desafioDeletado });
+        res.status(200).json({ message: "Desafio deletado com sucesso", desafio: desafioDeletado });
     }catch (error) {
         console.error(error);
         res.status(500).json({ error: "Erro ao deletar desafio" });
