@@ -11,8 +11,10 @@ model Usuario {
   id         Int         @id @default(autoincrement())
   nome       String
   email      String      @unique
-  senha      String      
+  senha      String?      
   tipo       String      // "admin" ou "usuario"
+  provider   String      @default("local")
+  picture    String      @default("https://cdn-icons-png.flaticon.com/512/17/17004.png")
   tentativas Tentativa[]
 }
 

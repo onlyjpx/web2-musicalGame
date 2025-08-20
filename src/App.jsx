@@ -1,6 +1,8 @@
 import { useEffect, useState } from 'react'
 import axios from 'axios'
+import { LoginGoogleCustom } from './components/googleLogin'
 import { Howl } from 'howler'
+import { motion as _m } from 'motion/react'
 
 function App() {
   const [musicas, setMusicas] = useState([])
@@ -23,7 +25,12 @@ function App() {
 
   return (
     <div className="p-4">
-      <h1 className="text-xl font-bold">Músicas</h1>
+      <_m.div 
+        initial = {{ opacity: 0 }}
+        animate = {{ opacity: 1 }}
+      >
+        <h1>Musicas</h1>
+      </_m.div>
       <ul className="space-y-4">
         {musicas.map(musica => (
           <li key={musica.deezerId} className="border p-4 rounded shadow">
@@ -37,6 +44,10 @@ function App() {
           </li>
         ))}
       </ul>
+      <div>
+        <h1>Teste do login google</h1>
+        <LoginGoogleCustom />
+      </div>
     </div>
   )
 }
