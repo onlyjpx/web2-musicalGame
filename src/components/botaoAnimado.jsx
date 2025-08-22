@@ -1,34 +1,56 @@
-import { motion as _m } from 'motion/react'
-import clsx from 'clsx';
+import { motion as _m } from "motion/react";
+import { useState } from "react";
+import { Loader2, Check, X } from "lucide-react";
+
+const estados = {
+  idle: { cor: "#007AFF" },     // azul iOS
+  loading: { cor: "#007AFF" },
+  success: { cor: "#34C759" },  // verde iOS
+  error: { cor: "#FF3B30" },    // vermelho iOS
+};
 
 export default function BotaoAnimado({
-  children,
+  mensagens = {
+    idle: "Enviar",
+    loading: "Processando...",
+    success: "Concluído!",
+    error: "Algo deu errado",
+  },
+  icones = {
+    idle: null,
+    loading: <Loader2 className="w-4 h-4 animate-spin" />,
+    success: <Check className="w-3 h-3" />,
+    error: <X className="w-4 h-4" />,
+  },
   onClick,
-  className,
-  variant = "primary",
 }) {
+  const [estado, setEstado] = useState("idle");
+
+  async function handleClick() {
+    if (onClick) {
+      setEstado("loading");
+      try {
+        await onClick();
+        setEstado("success");
+      } catch (err) {
+        setEstado("error", err);
+      }
+    }
+  }
+
   return (
     <_m.button
-      onClick={onClick}
-      className={clsx(
-        "px-6 py-3 rounded-2xl font-semibold shadow-md relative overflow-hidden",
-        variant === "primary" && "bg-blue-600 text-white",
-        variant === "secondary" && "bg-gray-200 text-gray-900",
-        className
-      )}
-      whileHover={{ scale: 1.05 }}
-      whileTap={{ scale: 0.95 }}
-      transition={{ type: "spring", stiffness: 300, damping: 20 }}
+      layout
+      onClick={handleClick}
+      className="flex items-center gap-2 px-6 py-3 rounded-2xl font-semibold shadow-md text-white"
+      animate={{ backgroundColor: estados[estado].cor }}
+      transition={{ type: "spring", stiffness: 500, damping: 30 }}
+      whileTap={{ scale: 0.97 }}
     >
-      <_m.span
-        className="absolute inset-0 bg-white/20"
-        initial={{ x: "-100%" }}
-        whileHover={{ x: "0%" }}
-        transition={{ duration: 0.4 }}
-      />
-      <span className="relative z-10">{children}</span>
+      <_m.span layout className="flex items-center gap-2">
+        {icones[estado]}
+        {mensagens[estado]}
+      </_m.span>
     </_m.button>
   );
 }
-
-
