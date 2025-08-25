@@ -3,31 +3,27 @@ import { motion as _m, AnimatePresence } from 'motion/react';
 import { useGoogleLogin } from "@react-oauth/google";
 import BotaoAnimado from "./botaoAnimado";
 import axios from 'axios'
+import { useAuth } from '../hooks/useAuth';
 
 export function LoginGoogleCustom() {
-    const [finalizou, setFinalizou] = useState(false);
-    const [mostrarBotao, setMostrarBotao] = useState(true);
+  const [finalizou, setFinalizou] = useState(false);
+  const [mostrarBotao, setMostrarBotao] = useState(true);
+  const { applyAuth } = useAuth();
     
     const login = useGoogleLogin({
         flow: "auth-code",
         redirect_uri: 'http://localhost:5173',
-        onSuccess: async (tokenResponse) => {
-            try {
-                const response = await axios.post("http://localhost:3000/auth/google", {
-                    code: tokenResponse.code,
-                })
-
-                const { token, nome } = response.data
-                localStorage.setItem("token", JSON.stringify(token, nome));
-                setFinalizou(true);
-
-                setTimeout(() => {
-                    setMostrarBotao(false);
-                }, 1200);
-            } catch (error) {
-                console.error("Erro no backend: ", error);
-            }
-        },
+    onSuccess: async (tokenResponse) => {
+      try {
+        const response = await axios.post("http://localhost:3000/auth/google", { code: tokenResponse.code });
+        const { token, usuario } = response.data;
+        applyAuth(token, usuario);
+        setFinalizou(true);
+        setTimeout(() => setMostrarBotao(false), 1200);
+      } catch (error) {
+        console.error("Erro no backend: ", error);
+      }
+    },
         onError: (error) => console.error("Login falhou: ", error),
     });
 

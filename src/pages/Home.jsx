@@ -2,32 +2,17 @@ import { motion as _m } from "motion/react";
 import { Sun, Moon, User, LogIn, UserPlus, LogOut } from "lucide-react";
 import { useState, useEffect } from "react";
 import { LoginGoogleCustom } from '../components/googleLogin'
-import { Navigate } from 'react-router-dom'
+import { Navigate, useNavigate } from 'react-router-dom'
+import { useAuth } from '../hooks/useAuth';
 
 export default function Home() {
   const [darkMode, setDarkMode] = useState(false);
   const [showUserMenu, setShowUserMenu] = useState(false);
-  const [isLoggedIn, setIsLoggedIn] = useState(false);
-  const [userData, setUserData] = useState(null);
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      try {
-        const parsedToken = JSON.parse(token);
-        setIsLoggedIn(true);
-        setUserData(parsedToken);
-      } catch {
-        setIsLoggedIn(false);
-        localStorage.removeItem("token");
-      }
-    }
-  }, []);
+  const { user, token, logout, loading } = useAuth();
+  const navigate = useNavigate();
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    setIsLoggedIn(false);
-    setUserData(null);
+    logout();
     setShowUserMenu(false);
   };
 
@@ -67,14 +52,14 @@ export default function Home() {
                   exit={{ opacity: 0, y: -10, scale: 0.95 }}
                   className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 py-2 z-50"
                 >
-                  {isLoggedIn ? (
+      {token ? (
                     <>
                       <div className="px-4 py-2 border-b border-gray-200 dark:border-gray-700">
                         <p className="text-sm font-medium text-gray-900 dark:text-white">
-                          {userData?.nome || 'Usuário'}
+        {user?.nome || user?.email || 'Usuário'}
                         </p>
                         <p className="text-xs text-gray-500 dark:text-gray-400">
-                          Logado
+        {loading ? 'Carregando...' : 'Logado'}
                         </p>
                       </div>
                       <button
@@ -87,7 +72,9 @@ export default function Home() {
                     </>
                   ) : (
                     <>
-                      <button className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">
+                      <button className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                      onClick={() => navigate('/login')}
+                      >
                         <LogIn className="w-4 h-4" />
                         Entrar
                       </button>
@@ -95,7 +82,7 @@ export default function Home() {
                         <UserPlus className="w-4 h-4" />
                         Registrar
                       </button>
-                      <div className="border-t border-gray-200 dark:border-gray-700 mt-2 pt-2">
+                      <div className="border-t border-gray-200 dark:border-gray-700 m-3 p-2">
                         <LoginGoogleCustom />
                       </div>
                     </>
