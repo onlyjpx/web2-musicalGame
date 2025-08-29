@@ -25,6 +25,9 @@ model Desafio {
   dificuldade Dificuldade
   tentativas  Tentativa[]
   musicas     DesafioMusica[]
+  desafioCapa String?     
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
 }
 
 model Tentativa {
@@ -43,6 +46,7 @@ model DesafioMusica {
   desafioId  Int
   deezerId   String
   desafio    Desafio @relation(fields: [desafioId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
 
   @@unique([desafioId, deezerId])
 }

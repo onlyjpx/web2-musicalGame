@@ -3,6 +3,10 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import Home from "./pages/Home";
 import Login from "./pages/Login";
 import Registrar from "./pages/Resgistrar";
+import AdminHome from './pages/adminHome.jsx';
+import PlayDesafio from './pages/PlayDesafio.jsx';
+import GameSelect from './pages/GameSelect.jsx';
+import ProtectedRoute from './components/ProtectedRoute.jsx';
 
 export default function App() {
   return (
@@ -10,7 +14,10 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} /> 
         <Route path="/login" element={<Login />} />
-        <Route path="/registrar" element={<Registrar />} />
+  <Route path="/registrar" element={<Registrar />} />
+  <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminHome /></ProtectedRoute>} />
+  <Route path="/jogar" element={<ProtectedRoute roles={['admin','usuario']}><GameSelect /></ProtectedRoute>} />
+  <Route path="/play/:id" element={<ProtectedRoute roles={['admin','usuario']}><PlayDesafio /></ProtectedRoute>} />
       </Routes>
     </BrowserRouter>
   );

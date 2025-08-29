@@ -77,7 +77,7 @@ export function LoginGoogleCustom() {
                   success: 'bg-green-600 text-white hover:bg-green-500',
                   error: 'bg-red-600 text-white hover:bg-red-500'
                 }}
-                baseClasses="w-full justify-center rounded-xl font-medium"
+                baseClasses="flex w-full justify-center rounded-xl font-medium"
               />
             </_m.div>
           )}

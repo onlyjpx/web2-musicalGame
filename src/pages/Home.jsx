@@ -1,8 +1,8 @@
 import { motion as _m } from "motion/react";
-import { Sun, Moon, User, LogIn, UserPlus, LogOut } from "lucide-react";
+import { Sun, Moon, User, LogIn, UserPlus, LogOut, Shield } from "lucide-react";
 import { useState, useEffect } from "react";
 import { LoginGoogleCustom } from '../components/googleLogin'
-import { Navigate, useNavigate } from 'react-router-dom'
+import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth';
 import { useTheme } from '../hooks/useTheme';
 
@@ -108,7 +108,9 @@ export default function Home() {
                         <LogIn className="w-4 h-4" />
                         Entrar
                       </button>
-                      <button className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2">
+                      <button className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                      onClick={() => navigate("/registrar")}
+                      >
                         <UserPlus className="w-4 h-4" />
                         Registrar
                       </button>
@@ -140,6 +142,7 @@ export default function Home() {
         <_m.button
           whileHover={{ scale: 1.05 }}
           whileTap={{ scale: 0.95 }}
+          onClick={()=> navigate('/jogar')}
           className="px-6 py-3 rounded-2xl font-semibold shadow-md bg-blue-600 text-white"
         >
           Jogar Agora
@@ -198,8 +201,24 @@ export default function Home() {
 
       {/* Footer */}
   <footer className="border-t border-gray-200 dark:border-gray-800 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
-        <p>© 2025 Guess The Song — Feito com ❤️</p>
+        <p>© 2025 Music Guessr</p>
       </footer>
+
+      {/* Botão flutuante para admin */}
+      {token && user?.tipo === 'admin' && (
+        <_m.button
+          onClick={() => navigate('/admin')}
+          initial={{ opacity: 0, scale: 0.8 }}
+          animate={{ opacity: 1, scale: 1 }}
+          whileHover={{ scale: 1.08 }}
+          whileTap={{ scale: 0.95 }}
+          className="fixed bottom-5 right-5 z-50 flex items-center gap-2 px-4 py-3 rounded-xl font-medium shadow-lg bg-gradient-to-r from-purple-600 to-indigo-600 text-white hover:from-purple-500 hover:to-indigo-500 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-purple-500 dark:focus:ring-offset-black"
+          aria-label="Área administrativa"
+        >
+          <Shield className="w-5 h-5" />
+          <span className="hidden sm:inline">Admin</span>
+        </_m.button>
+      )}
     </div>
   );
 }

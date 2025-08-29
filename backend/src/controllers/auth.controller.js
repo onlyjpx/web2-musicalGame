@@ -38,7 +38,8 @@ export const login = async (req, res) => {
         if (!senhaValida) return res.status(401).json({ error: "Senha incorreta" });
 
         const token = gerarToken({ id: usuario.id, email: usuario.email, tipo: usuario.tipo });
-        res.status(200).json({ usuario, token });
+        const { nome, tipo, picture, provider } = usuario;
+        res.status(200).json({ usuario: { nome, email: usuario.email, tipo, picture, provider }, token });
     }catch(error){
         console.error("Erro ao fazer login:", error);
         res.status(500).json({ error: "Erro interno do servidor" });

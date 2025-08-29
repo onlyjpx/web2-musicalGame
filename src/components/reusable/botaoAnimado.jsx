@@ -4,7 +4,7 @@ import { Loader2, Check, X } from 'lucide-react';
 import clsx from 'clsx';
 
 /*
-  Mudei o botão cesar:
+  Mudei o botão, cesar:
   BotaoAnimado agora usa Tailwind para estilos.
   Props principais:
   - variantClasses: objeto com classes por estado { idle, loading, success, error }
@@ -41,6 +41,7 @@ export default function BotaoAnimado({
   disabled,
   state: controlledState, // quando passado, o botão vira controlado
   onStateChange,
+  buttonType = 'button', // permite usar como submit em formulários
 }) {
   const [estado, setEstado] = useState('idle');
 
@@ -76,7 +77,7 @@ export default function BotaoAnimado({
   return (
     <_m.button
       layout
-      type="button"
+  type={buttonType}
       onClick={handleClick}
   disabled={disabled || currentState === 'loading'}
       className={composed}

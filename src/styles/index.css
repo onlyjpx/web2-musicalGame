@@ -24,4 +24,36 @@ html.dark body {
 }
 
 html { scroll-behavior: smooth; }
+/* Custom select reset & arrow */
+.select-clean {
+  -webkit-appearance: none;
+  -moz-appearance: none;
+  appearance: none;
+  background-image: none;
+  padding-right: 2.25rem; /* room for pseudo arrow */
+  position: relative;
+}
+
+.select-wrapper { position: relative; }
+.select-wrapper:after {
+  content: "";
+  pointer-events: none;
+  position: absolute;
+  top: 50%;
+  right: .75rem;
+  width: .65rem;
+  height: .65rem;
+  transform: translateY(-60%) rotate(45deg);
+  border-right: 2px solid currentColor;
+  border-bottom: 2px solid currentColor;
+  border-top: 2px solid transparent;
+  border-left: 2px solid transparent;
+  border-radius: 1px;
+  opacity: .7;
+  transition: opacity .2s;
+}
+.select-wrapper:focus-within:after { opacity: 1; }
+
+html.dark .select-wrapper:after { color: #e2e8f0; }
+html:not(.dark) .select-wrapper:after { color: #1f2937; }
   
