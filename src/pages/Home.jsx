@@ -1,5 +1,5 @@
 import { motion as _m } from "motion/react";
-import { Sun, Moon, User, LogIn, UserPlus, LogOut, Shield } from "lucide-react";
+import { Sun, Moon, User, LogIn, UserPlus, LogOut, Shield, Trophy, Zap, Music2, Users, Compass, Sparkles } from "lucide-react";
 import { useState, useEffect } from "react";
 import { LoginGoogleCustom } from '../components/googleLogin'
 import { useNavigate } from 'react-router-dom'
@@ -57,8 +57,27 @@ export default function Home() {
     }
   };
 
+  // métricas mock (futuro pode vir de endpoint /meta/estatisticas)
+  const stats = [
+    { icon: <Music2 className="w-4 h-4" />, label: 'Músicas', value: '5k+' },
+    { icon: <Trophy className="w-4 h-4" />, label: 'Desafios', value: '320+' },
+    { icon: <Users className="w-4 h-4" />, label: 'Jogadores', value: '1.2k+' },
+    { icon: <Zap className="w-4 h-4" />, label: 'Acurácia Média', value: '68%' },
+  ];
+
+  const roadmap = [
+    { title: 'Modo Coop', text: 'Jogue com amigos tentando somar pontos.' },
+    { title: 'Ranking Sazonal', text: 'Temporadas com reset e recompensas.' },
+    { title: 'Skins & Badges', text: 'Colecione conquistas por streaks.' },
+  ];
+
   return (
-  <div className={`${resolvedTheme === 'dark' ? 'dark bg-black text-white' : 'bg-white text-black'} items-center justify-center min-h-screen`}>
+  <div className={`${resolvedTheme === 'dark' ? 'dark bg-gradient-to-b from-black via-zinc-950 to-black text-white' : 'bg-gradient-to-b from-white via-slate-50 to-white text-black'} relative min-h-screen overflow-hidden`}> 
+      {/* Background decorative blobs */}
+      <div className="pointer-events-none select-none absolute inset-0 opacity-[0.15] dark:opacity-[0.25]">
+        <div className="absolute -top-32 -left-32 w-80 h-80 bg-gradient-to-br from-indigo-500/60 to-fuchsia-500/60 blur-3xl rounded-full" />
+        <div className="absolute top-1/2 -right-32 w-72 h-72 bg-gradient-to-br from-sky-400/50 to-emerald-400/50 blur-3xl rounded-full" />
+      </div>
       {/* Header */}
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/70 dark:bg-black/70 border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
@@ -127,30 +146,34 @@ export default function Home() {
       </header>
 
       {/* Hero */}
-      <section className="max-w-5xl mx-auto px-4 py-20 text-center">
-        <_m.h2
-          initial={{ opacity: 0, y: 20 }}
-          animate={{ opacity: 1, y: 0 }}
-          transition={{ duration: 0.6 }}
-          className="text-4xl font-bold mb-4"
-        >
-          Adivinhe a música 🎧
-        </_m.h2>
-        <p className="text-lg text-gray-600 dark:text-gray-400 mb-8">
-          Teste seus conhecimentos musicais e desafie seus amigos!
-        </p>
-        <_m.button
-          whileHover={{ scale: 1.05 }}
-          whileTap={{ scale: 0.95 }}
-          onClick={()=> navigate('/jogar')}
-          className="px-6 py-3 rounded-2xl font-semibold shadow-md bg-blue-600 text-white"
-        >
-          Jogar Agora
-        </_m.button>
+      <section className="relative max-w-6xl mx-auto px-5 pt-24 pb-24 text-center">
+        <_m.div initial={{ opacity: 0, y: 25 }} animate={{ opacity: 1, y: 0 }} transition={{ duration: .7 }}>
+          <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-medium bg-gradient-to-r from-indigo-600 to-purple-600 text-white shadow">
+            <Sparkles className="w-3 h-3" /> Nova experiência musical
+          </div>
+          <h2 className="mt-6 font-extrabold tracking-tight text-4xl sm:text-5xl bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-rose-500">Adivinhe a Música em Segundos</h2>
+          <p className="mt-6 text-base sm:text-lg max-w-2xl mx-auto text-gray-600 dark:text-gray-400 leading-relaxed">
+            Ouça trechos curtos, faça palpites inteligentes e suba no ranking. Cada segundo vale pontos — velocidade e precisão importam.
+          </p>
+          <div className="mt-8 flex flex-col sm:flex-row gap-4 justify-center">
+            <_m.button whileHover={{ scale: 1.05 }} whileTap={{ scale: .95 }} onClick={()=> navigate('/jogar')} className="px-7 py-3 rounded-xl font-semibold shadow-lg bg-indigo-600 hover:bg-indigo-700 text-white text-sm">Jogar Agora</_m.button>
+            <_m.button whileHover={{ scale: 1.05 }} whileTap={{ scale: .95 }} onClick={()=> scrollTo('sec-desafios')} className="px-7 py-3 rounded-xl font-semibold shadow-lg bg-white dark:bg-zinc-800 text-zinc-800 dark:text-zinc-100 border border-zinc-300 dark:border-zinc-700 text-sm">Explorar Recursos</_m.button>
+          </div>
+        </_m.div>
+        {/* Stats */}
+        <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto">
+          {stats.map(s => (
+            <div key={s.label} className="relative rounded-xl p-4 bg-white/70 dark:bg-zinc-900/60 backdrop-blur border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
+              <div className="flex items-center gap-2 text-xs font-medium text-indigo-600 dark:text-indigo-400">{s.icon}<span>{s.label}</span></div>
+              <div className="mt-2 text-lg font-bold tracking-tight">{s.value}</div>
+              <div className="absolute -bottom-6 -right-4 w-16 h-16 bg-gradient-to-tr from-indigo-500/10 to-fuchsia-500/10 rounded-full blur-xl" />
+            </div>
+          ))}
+        </div>
       </section>
 
       {/* Cards */}
-      <section className="max-w-5xl mx-auto px-4 py-16 grid grid-cols-1 md:grid-cols-3 gap-6">
+  <section className="max-w-6xl mx-auto px-5 py-16 grid grid-cols-1 md:grid-cols-3 gap-6">
         {features.map((card) => (
           <_m.button
             key={card.key}
@@ -158,11 +181,12 @@ export default function Home() {
             whileHover={{ y: -5 }}
             whileTap={{ scale: 0.97 }}
             transition={{ type: 'spring', stiffness: 300, damping: 20 }}
-            className="text-left p-6 rounded-2xl shadow-md bg-gray-100 dark:bg-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 cursor-pointer"
+    className="relative overflow-hidden text-left p-6 rounded-2xl shadow-md bg-gray-100 dark:bg-zinc-900 focus:outline-none focus:ring-2 focus:ring-indigo-500 cursor-pointer group"
           >
+    <div className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 bg-gradient-to-br from-indigo-600/10 via-fuchsia-600/10 to-rose-600/10" />
             <h3 className="font-bold text-lg mb-2 flex items-center gap-2">
               <span>{card.titulo}</span>
-              <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-blue-600 text-white">ver mais</span>
+      <span className="text-xs font-medium px-2 py-0.5 rounded-full bg-indigo-600 text-white">ver mais</span>
             </h3>
             <p className="text-gray-600 dark:text-gray-400">{card.desc}</p>
           </_m.button>
@@ -170,7 +194,7 @@ export default function Home() {
       </section>
 
       {/* Seções detalhadas */}
-      <section className="max-w-5xl mx-auto px-4 pb-32 flex flex-col gap-24">
+      <section className="max-w-6xl mx-auto px-5 pb-32 flex flex-col gap-24">
         {features.map(card => (
           <div
             key={card.key}
@@ -197,11 +221,38 @@ export default function Home() {
             </button>
           </div>
         ))}
+        {/* Roadmap / Próximos */}
+        <div className="mt-4" id="sec-roadmap">
+          <_m.h3 initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }} transition={{ duration:.5 }} className="text-2xl font-bold mb-6 flex items-center gap-2">Próximos Passos <Compass className="w-5 h-5 text-indigo-500" /></_m.h3>
+          <div className="grid gap-5 md:grid-cols-3">
+            {roadmap.map(r => (
+              <div key={r.title} className="relative p-5 rounded-xl bg-white/70 dark:bg-zinc-900/60 backdrop-blur border border-zinc-200 dark:border-zinc-800 shadow-sm">
+                <h4 className="font-semibold text-sm mb-2 text-indigo-600 dark:text-indigo-400">{r.title}</h4>
+                <p className="text-xs text-gray-600 dark:text-gray-400 leading-relaxed">{r.text}</p>
+                <div className="absolute -bottom-4 -right-4 w-14 h-14 bg-gradient-to-tr from-indigo-500/10 to-fuchsia-500/10 rounded-full blur-xl" />
+              </div>
+            ))}
+          </div>
+        </div>
+        {/* CTA Final */}
+        <div className="mt-24 relative overflow-hidden rounded-3xl bg-gradient-to-r from-indigo-600 via-purple-600 to-fuchsia-600 p-[1px] shadow-xl">
+          <div className="rounded-3xl bg-white dark:bg-zinc-950 px-8 py-12 flex flex-col md:flex-row items-center gap-8">
+            <div className="flex-1 text-center md:text-left">
+              <h3 className="text-2xl font-bold mb-3 bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 to-fuchsia-500">Pronto para entrar no ritmo?</h3>
+              <p className="text-sm text-gray-600 dark:text-gray-400 max-w-md">Comece um desafio agora e conquiste o topo do ranking antes que alguém pegue seu lugar.</p>
+            </div>
+            <div className="flex flex-col sm:flex-row gap-4">
+              <_m.button whileHover={{ scale:1.05 }} whileTap={{ scale:.95 }} onClick={()=> navigate('/jogar')} className="px-6 py-3 rounded-xl bg-indigo-600 hover:bg-indigo-700 text-white text-sm font-semibold shadow">Jogar Agora</_m.button>
+              <_m.button whileHover={{ scale:1.05 }} whileTap={{ scale:.95 }} onClick={()=> scrollTo('sec-ranking')} className="px-6 py-3 rounded-xl bg-white dark:bg-zinc-800 text-sm font-semibold text-zinc-800 dark:text-zinc-100 border border-zinc-300 dark:border-zinc-700 shadow">Ver Ranking</_m.button>
+            </div>
+          </div>
+        </div>
       </section>
 
       {/* Footer */}
-  <footer className="border-t border-gray-200 dark:border-gray-800 py-6 text-center text-sm text-gray-500 dark:text-gray-400">
-        <p>© 2025 Music Guessr</p>
+  <footer className="border-t border-gray-200 dark:border-gray-800 py-10 text-center text-xs text-gray-500 dark:text-gray-400 mt-10">
+        <p className="mb-2">© 2025 Music Guessr • Feito com música e código</p>
+        <p>Alpha Preview — feedback é bem-vindo.</p>
       </footer>
 
       {/* Botão flutuante para admin */}

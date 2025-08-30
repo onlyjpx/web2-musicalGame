@@ -132,43 +132,45 @@ export default function PlayDesafio() {
   if (startError) {
     return (
       <div className="p-6 flex flex-col gap-4 max-w-sm mx-auto">
-        <p className="text-sm text-red-600 font-medium">{startError}</p>
-        <button onClick={()=> navigate('/jogar')} className="px-4 py-2 rounded bg-indigo-600 text-white text-sm">Escolher outro desafio</button>
+        <p className="text-sm text-red-600 dark:text-red-400 font-medium">{startError}</p>
+        <button onClick={()=> navigate('/jogar')} className="px-4 py-2 rounded bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-sm shadow">Escolher outro desafio</button>
       </div>
     );
   }
 
   if (!session || !current) {
-    return <div className="p-6 text-sm">Preparando jogo...</div>;
+    return <div className="p-6 text-sm text-gray-600 dark:text-gray-400">Preparando jogo...</div>;
   }
 
   if (current.finished) {
     return (
       <div className="p-6 flex flex-col items-center gap-4">
-        <h2 className="text-xl font-semibold">Fim do Desafio!</h2>
+        <h2 className="text-xl font-semibold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-rose-500">Fim do Desafio!</h2>
         <p className="text-sm">Pontuação final: <span className="font-bold">{current.score}</span></p>
-        <button onClick={() => navigate('/')} className="px-4 py-2 rounded bg-indigo-600 text-white text-sm">Voltar</button>
+        <button onClick={() => navigate('/')} className="px-4 py-2 rounded bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white text-sm shadow">Voltar</button>
       </div>
     );
   }
 
   return (
-    <div className="max-w-md mx-auto p-6 flex flex-col gap-4">
+    <div className="max-w-md mx-auto p-6 flex flex-col gap-5 relative">
+      <div className="absolute -top-24 -left-24 w-72 h-72 bg-gradient-to-br from-indigo-500/40 to-fuchsia-500/40 blur-3xl rounded-full pointer-events-none" />
       <div className="flex justify-between text-xs text-gray-500 dark:text-gray-400">
         <span>Rodada {current.round} / {current.totalRounds}</span>
         <span>Pontos: {current.score}</span>
       </div>
-      <div className="aspect-video w-full bg-gray-200 dark:bg-gray-800 rounded flex items-center justify-center relative overflow-hidden">
+      <div className="aspect-video w-full rounded-xl flex items-center justify-center relative overflow-hidden bg-white/70 dark:bg-zinc-900/60 backdrop-blur border border-zinc-200 dark:border-zinc-800">
         {current.imagem && <img src={current.imagem} alt="Capa" className="absolute inset-0 w-full h-full object-cover opacity-40" />}
-        <span className="relative z-10 text-sm">Escutando preview...</span>
+        <span className="relative z-10 text-sm text-gray-700 dark:text-gray-300">Escutando preview...</span>
+        <div className="absolute inset-0 opacity-0 pointer-events-none bg-gradient-to-br from-indigo-600/10 via-fuchsia-600/10 to-rose-600/10" />
       </div>
       <p className="text-xs text-gray-600 dark:text-gray-300">Tempo de preview (dificuldade): {session.snippetSeconds}s</p>
       <form onSubmit={submit} className="flex gap-2">
-        <input value={answer} onChange={e=> setAnswer(e.target.value)} placeholder="Digite o nome da música" className="flex-1 text-sm px-3 py-2 rounded border border-gray-300 dark:border-gray-700 bg-transparent" />
-        <button disabled={!answer.trim() || submitting} className="px-4 py-2 rounded bg-green-600 disabled:opacity-50 text-white text-sm">{submitting ? '...' : 'Enviar'}</button>
+        <input value={answer} onChange={e=> setAnswer(e.target.value)} placeholder="Digite o nome da música" className="flex-1 text-sm px-3 py-2 rounded-lg border border-gray-300 dark:border-gray-700 bg-transparent focus:outline-none focus:ring-2 focus:ring-indigo-500" />
+        <button disabled={!answer.trim() || submitting} className="px-4 py-2 rounded-lg bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 disabled:opacity-50 text-white text-sm shadow">{submitting ? '...' : 'Enviar'}</button>
       </form>
       {feedback && (
-        <div className={`text-sm font-medium ${feedback.correta ? 'text-green-600' : 'text-red-600'}`}>
+        <div className={`text-sm font-medium ${feedback.correta ? 'text-green-600 dark:text-green-500' : 'text-red-600 dark:text-red-400'}`}>
           {feedback.correta ? 'Acertou!' : 'Errou!'} - {feedback.titulo}
         </div>
       )}

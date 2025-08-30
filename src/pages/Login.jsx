@@ -45,9 +45,14 @@ export default function Login() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center px-4 py-10">
-      <div className="w-full max-w-md bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm p-8">
-        <h1 className="text-2xl font-bold mb-2 text-gray-900 dark:text-gray-100">Entrar</h1>
+    <div className="min-h-screen relative flex items-center justify-center px-4 py-16 bg-gradient-to-b from-white via-slate-50 to-white dark:from-black dark:via-zinc-950 dark:to-black overflow-hidden">
+      {/* decorative blobs */}
+      <div className="pointer-events-none select-none absolute inset-0 opacity-[0.12] dark:opacity-[0.22]">
+        <div className="absolute -top-32 -left-24 w-80 h-80 bg-gradient-to-br from-indigo-500/60 to-fuchsia-500/60 blur-3xl rounded-full" />
+        <div className="absolute bottom-[-6rem] right-[-4rem] w-72 h-72 bg-gradient-to-br from-sky-400/50 to-emerald-400/50 blur-3xl rounded-full" />
+      </div>
+      <div className="relative w-full max-w-md rounded-2xl p-8 backdrop-blur bg-white/80 dark:bg-zinc-900/70 border border-zinc-200 dark:border-zinc-800 shadow-xl">
+        <h1 className="text-2xl font-bold mb-2 bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-rose-500">Entrar</h1>
         <p className="text-sm text-gray-600 dark:text-gray-400 mb-6">Bem-vindo de volta! Acesse sua conta.</p>
         <form
           onSubmit={e => { e.preventDefault(); onSubmit(); }}
@@ -61,7 +66,7 @@ export default function Login() {
               type="email"
               value={form.email}
               onChange={handleChange}
-              className="border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="voce@exemplo.com"
               autoComplete="email"
             />
@@ -74,7 +79,7 @@ export default function Login() {
               type="password"
               value={form.senha}
               onChange={handleChange}
-              className="border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+              className="border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
               placeholder="••••••••"
               autoComplete="current-password"
             />
@@ -92,12 +97,12 @@ export default function Login() {
               error: 'Tentar novamente'
             }}
             variantClasses={{
-              idle: 'bg-blue-600 hover:bg-blue-500 text-white',
-              loading: 'bg-blue-600 text-white opacity-80 cursor-wait',
+              idle: 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow',
+              loading: 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white opacity-80 cursor-wait',
               success: 'bg-green-600 text-white hover:bg-green-500',
               error: 'bg-red-600 text-white hover:bg-red-500'
             }}
-            baseClasses="w-full flex items-center justify-center gap-2 rounded-xl font-medium"
+            baseClasses="w-full flex items-center justify-center gap-2 rounded-xl font-medium h-11"
           />
         </form>
         <div className="mt-6">
@@ -110,7 +115,7 @@ export default function Login() {
         </div>
         <p className="mt-6 text-sm text-gray-600 dark:text-gray-400">
           Não tem conta?{' '}
-          <Link to="/registrar" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">Registrar</Link>
+          <Link to="/registrar" className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">Registrar</Link>
         </p>
       </div>
     </div>

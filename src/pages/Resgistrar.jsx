@@ -58,9 +58,13 @@ export default function Registrar() {
     }
 
     return (
-        <div className="min-h-screen flex items-center justify-center px-4 py-10">
-            <div className="w-full max-w-md bg-white dark:bg-gray-900 border border-gray-200 dark:border-gray-800 rounded-2xl shadow-sm p-8">
-                <h1 className="text-2xl font-bold mb-6 text-gray-900 dark:text-gray-100">Criar conta</h1>
+        <div className="min-h-screen relative flex items-center justify-center px-4 py-16 bg-gradient-to-b from-white via-slate-50 to-white dark:from-black dark:via-zinc-950 dark:to-black overflow-hidden">
+            <div className="pointer-events-none select-none absolute inset-0 opacity-[0.12] dark:opacity-[0.22]">
+                <div className="absolute -top-32 -right-24 w-80 h-80 bg-gradient-to-br from-indigo-500/60 to-fuchsia-500/60 blur-3xl rounded-full" />
+                <div className="absolute bottom-[-6rem] left-[-4rem] w-72 h-72 bg-gradient-to-br from-sky-400/50 to-emerald-400/50 blur-3xl rounded-full" />
+            </div>
+            <div className="relative w-full max-w-md rounded-2xl p-8 backdrop-blur bg-white/80 dark:bg-zinc-900/70 border border-zinc-200 dark:border-zinc-800 shadow-xl">
+                <h1 className="text-2xl font-bold mb-6 bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-rose-500">Criar conta</h1>
                 <form
                     className="flex flex-col gap-4"
                     onSubmit={e => { e.preventDefault(); onSubmit(); }}
@@ -73,7 +77,7 @@ export default function Registrar() {
                             type="text"
                             value={form.nome}
                             onChange={handleChange}
-                            className="border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             placeholder="Seu nome"
                             autoComplete="name"
                         />
@@ -86,7 +90,7 @@ export default function Registrar() {
                             type="email"
                             value={form.email}
                             onChange={handleChange}
-                            className="border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                            className="border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                             placeholder="voce@exemplo.com"
                             autoComplete="email"
                         />
@@ -99,7 +103,7 @@ export default function Registrar() {
                                 type="password"
                                 value={form.senha}
                                 onChange={handleChange}
-                                className="border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                 placeholder="••••••••"
                                 autoComplete="new-password"
                             />
@@ -112,7 +116,7 @@ export default function Registrar() {
                                 type="password"
                                 value={form.confirmar}
                                 onChange={handleChange}
-                                className="border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-blue-500"
+                                className="border border-gray-300 dark:border-gray-700 bg-transparent rounded-lg px-3 py-2 focus:outline-none focus:ring-2 focus:ring-indigo-500"
                                 placeholder="Repita a senha"
                                 autoComplete="new-password"
                             />
@@ -134,17 +138,17 @@ export default function Registrar() {
                             error: 'Tentar novamente'
                         }}
                         variantClasses={{
-                            idle: 'bg-white dark:bg-slate-900 border border-gray-300 dark:border-indigo-950 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800',
-                            loading: 'bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 cursor-wait',
+                            idle: 'bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white shadow',
+                            loading: 'bg-gradient-to-r from-indigo-600 to-purple-600 text-white opacity-80 cursor-wait',
                             success: 'bg-green-600 text-white hover:bg-green-500',
                             error: 'bg-red-600 text-white hover:bg-red-500'
                         }}
-                        baseClasses="flex w-full justify-center rounded-xl font-medium p-2"
+                        baseClasses="flex w-full justify-center rounded-xl font-medium p-2 h-11"
                     />
                 </form>
-                <p className="mt-6 text-sm text-gray-600 dark:text-gray-400 bg">
+                <p className="mt-6 text-sm text-gray-600 dark:text-gray-400">
                     Já tem conta?{' '}
-                    <Link to="/login" className="text-blue-600 dark:text-blue-400 hover:underline font-medium">Entrar</Link>
+                    <Link to="/login" className="text-indigo-600 dark:text-indigo-400 hover:underline font-medium">Entrar</Link>
                 </p>
             </div>
         </div>
