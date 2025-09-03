@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { motion as Motion } from 'motion/react';
 import MusicasPanel from './MusicasPanel';
 
-export default function DesafioItem({ d, musicaState, onToggleMusicas, onAddMusica, onFormMusicaChange, onUpdate, onDelete, onAddMusicaCount, onRemoveMusica }) {
+export default function DesafioItem({ d, musicaState, onToggleMusicas, onAddMusica, onFormMusicaChange, onUpdate, onDelete, onAddMusicaCount, onRemoveMusica, onSelecionarSugestao, onLimparSelecao }) {
   const [editMode, setEditMode] = useState(false);
   const [saving, setSaving] = useState(false);
   const [form, setForm] = useState({
@@ -95,8 +95,10 @@ export default function DesafioItem({ d, musicaState, onToggleMusicas, onAddMusi
           d={d}
           musicaState={musicaState}
           onFormChange={onFormMusicaChange}
-          onAdd={(id)=> onAddMusica(id, ()=> onAddMusicaCount(d.id))}
+          onAdd={(id, _cb, deezerId)=> onAddMusica(id, ()=> onAddMusicaCount(d.id), deezerId)}
           onRemove={onRemoveMusica}
+          onSelecionarSugestao={onSelecionarSugestao}
+          onLimparSelecao={onLimparSelecao}
         />
       </div>
   </Motion.li>

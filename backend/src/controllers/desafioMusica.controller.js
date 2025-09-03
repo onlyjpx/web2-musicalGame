@@ -18,11 +18,11 @@ function toMusicaDTO(m) {
 
 export async function adicionarMusicaAoDesafio(req, res) {
     const { id } = req.params;
-    const { musicaNome, artistaNome } = req.body;
+    const { musicaNome, artistaNome, deezerId } = req.body;
 
     try {
-        if (!musicaNome || !musicaNome.trim()) {
-            return res.status(400).json({ error: { code: 'MUSICA_NOME_OBRIGATORIO', message: "O nome da música é obrigatório" } });
+        if ((!musicaNome || !musicaNome.trim()) && !deezerId) {
+            return res.status(400).json({ error: { code: 'MUSICA_IDENTIFICADOR_OBRIGATORIO', message: "Informe o nome da música ou um deezerId" } });
         }
 
         if(req.usuario.tipo.toLowerCase() !== "admin") {
@@ -42,7 +42,12 @@ export async function adicionarMusicaAoDesafio(req, res) {
             return res.status(400).json({ error: { code: 'LIMITE_MUSICAS', message: `Limite de ${LIMITES.MAX_MUSICAS_DESAFIO} músicas por desafio atingido` } });
         }
 
-        const musicaDeezer = await buscarMusicaDeezer(musicaNome, artistaNome);
+        let musicaDeezer;
+        if (deezerId) {
+            musicaDeezer = await buscarMusicaDeezerPorId(deezerId);
+        } else {
+            musicaDeezer = await buscarMusicaDeezer(musicaNome, artistaNome);
+        }
         if (!musicaDeezer) {
             return res.status(404).json({ error: { code: 'MUSICA_NAO_ENCONTRADA_DEEZER', message: "Música não encontrada no Deezer" } });
         }
@@ -105,50 +110,30 @@ export const listarMusicasDoDesafio = async (req, res) => {
 
 export const deletarMusicaDoDesafio = async (req, res) => {
     const { id } = req.params;
-    const { musicaNome, artistaNome } = req.body;
+    const { deezerId, musicaNome, artistaNome } = req.body;
 
-    try{
-        const musicaId = await buscarMusicaDeezer(musicaNome, artistaNome);
-        console.log(musicaId);
-        const desafio = await prisma.desafioMusica.findMany({
-            where: {
-                desafioId: Number(id),
+    try {
+        let targetDeezerId = deezerId;
+        if (!targetDeezerId) {
+            if (!musicaNome) {
+                return res.status(400).json({ error: 'Informe deezerId ou musicaNome para deletar' });
             }
-        });
-
-        if(!desafio) {
-            return res.status(404).json({ error: "Desafio não encontrado" });
+            const musicaBusca = await buscarMusicaDeezer(musicaNome, artistaNome);
+            if (!musicaBusca) return res.status(404).json({ error: 'Música não encontrada' });
+            targetDeezerId = musicaBusca.deezerId;
         }
 
         const musicaExistente = await prisma.desafioMusica.findUnique({
-            where:{
-                desafioId_deezerId: {
-                    desafioId: Number(id),
-                    deezerId: String(musicaId.deezerId)
-                }
-            }
+            where: { desafioId_deezerId: { desafioId: Number(id), deezerId: String(targetDeezerId) } }
         });
-
-        console.log("Musica encontrada no banco:", musicaExistente);
-
-        if(!musicaExistente) {
-            return res.status(404).json({ error: "Música não encontrada ou já deletada"});
+        if (!musicaExistente) {
+            return res.status(404).json({ error: 'Música não associada a este desafio' });
         }
 
-        console.log("Tentando deletar:", {
-            desafioId: Number(id),
-            deezerId: String(musicaExistente.deezerId)
-          });
-          
-
         await prisma.desafioMusica.delete({
-            where: {
-                desafioId_deezerId: {
-                    desafioId: Number(id),
-                    deezerId: String(musicaId.deezerId)
-                }
-            }
+            where: { desafioId_deezerId: { desafioId: Number(id), deezerId: String(targetDeezerId) } }
         });
+
         const desafioAtualizado = await prisma.desafio.findUnique({
             where: { id: Number(id) },
             include: { _count: { select: { musicas: true } } }
@@ -159,10 +144,9 @@ export const deletarMusicaDoDesafio = async (req, res) => {
             if(!musicaDeezer) return null;
             return { ...musicaDeezer, addedAt: musica.createdAt };
         }));
-        res.status(200).json({ ok: true, musicasCount: desafioAtualizado._count.musicas, musicas: musicasDetalhadas.filter(Boolean).map(toMusicaDTO) });
-
-    }catch (error) {
+        return res.status(200).json({ ok: true, musicasCount: desafioAtualizado._count.musicas, musicas: musicasDetalhadas.filter(Boolean).map(toMusicaDTO) });
+    } catch (error) {
         console.error(error);
-        res.status(500).json({ error: "Erro ao deletar música do desafio" });
+        return res.status(500).json({ error: 'Erro ao deletar música do desafio' });
     }
-}
+};

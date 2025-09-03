@@ -7,6 +7,8 @@ import AdminHome from './pages/adminHome.jsx';
 import PlayDesafio from './pages/PlayDesafio.jsx';
 import GameSelect from './pages/GameSelect.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
+import Profile from './pages/Profile.jsx';
+import Ranking from './pages/Ranking.jsx';
 
 export default function App() {
   return (
@@ -14,10 +16,12 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Home />} /> 
         <Route path="/login" element={<Login />} />
-  <Route path="/registrar" element={<Registrar />} />
-  <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminHome /></ProtectedRoute>} />
-  <Route path="/jogar" element={<ProtectedRoute roles={['admin','usuario']}><GameSelect /></ProtectedRoute>} />
-  <Route path="/play/:id" element={<ProtectedRoute roles={['admin','usuario']}><PlayDesafio /></ProtectedRoute>} />
+        <Route path="/registrar" element={<Registrar />} />
+        <Route path="/admin" element={<ProtectedRoute roles={['admin']}><AdminHome /></ProtectedRoute>} />
+        <Route path="/jogar" element={<ProtectedRoute roles={['admin','usuario']}><GameSelect /></ProtectedRoute>} />
+        <Route path="/play/:id" element={<ProtectedRoute roles={['admin','usuario']}><PlayDesafio /></ProtectedRoute>} />
+        <Route path="/perfil" element={<ProtectedRoute roles={['admin','usuario']}><Profile /></ProtectedRoute>} />
+  <Route path="/ranking" element={<Ranking />} />
       </Routes>
     </BrowserRouter>
   );

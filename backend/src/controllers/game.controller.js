@@ -5,12 +5,14 @@ import { buscarMusicaDeezerPorId } from '../services/deezer.service.js';
 const sessions = new Map();
 
 // Configurações de jogo por dificuldade
+// base: pontos fixos por acerto
+// maxBonus: bônus máximo possível (acerto instantâneo)
 const DIFFICULTY_CONFIG = {
-  FACIL: { snippetSeconds: 10, pontos: 10 },
-  MEDIO: { snippetSeconds: 7, pontos: 15 },
-  DIFICIL: { snippetSeconds: 5, pontos: 25 },
-  MUITO_DIFICIL: { snippetSeconds: 3, pontos: 35 },
-  EXTREMO: { snippetSeconds: 2, pontos: 50 },
+  FACIL: { snippetSeconds: 10, base: 8,  maxBonus: 12 },
+  MEDIO: { snippetSeconds: 7,  base: 12, maxBonus: 18 },
+  DIFICIL: { snippetSeconds: 5,  base: 18, maxBonus: 27 },
+  MUITO_DIFICIL: { snippetSeconds: 3,  base: 26, maxBonus: 39 },
+  EXTREMO: { snippetSeconds: 2,  base: 38, maxBonus: 57 },
 };
 
 function normalizarTexto(txt) {
@@ -109,6 +111,9 @@ export async function startGame(req, res) { // lógica de início de jogo
       score: 0,
       createdAt: Date.now(),
   roundStartedAt: null,
+  correctCount: 0,
+  guessCount: 0,
+    guesses: [], // {acertou, tempoResposta, pontos}
     });
 
     res.json({
@@ -183,35 +188,45 @@ export async function submitGuess(req, res) { // lógica para enviar palpite do 
       }
     }
   }
+  let pontosGanhos = 0;
+  let bonusTempo = 0;
+  let pontosBase = 0;
   if (correta) {
-    s.score += cfg.pontos;
+    // tempo de resposta em segundos (calculado abaixo). Para o bônus consideramos tempo válido
+    const tempoPrev = s.roundStartedAt ? (Date.now() - s.roundStartedAt) / 1000 : null;
+    const snippet = cfg.snippetSeconds;
+    const tempoConsiderado = tempoPrev != null ? Math.min(Math.max(tempoPrev, 0), snippet) : snippet;
+    // razão 0..1 (0 = instantâneo, 1 = levou todo o preview)
+    const ratio = snippet > 0 ? (tempoConsiderado / snippet) : 1;
+    // curva levemente exponencial para recompensar muito respostas rápidas
+    // bonus decresce com ratio^1.25
+    bonusTempo = Math.round(cfg.maxBonus * Math.pow(1 - ratio, 1.25));
+    if (bonusTempo < 0) bonusTempo = 0;
+    pontosBase = cfg.base;
+    pontosGanhos = pontosBase + bonusTempo;
+    s.score += pontosGanhos;
   }
   // tempo de resposta em segundos (desde início da rodada)
   const tempoResposta = s.roundStartedAt ? (Date.now() - s.roundStartedAt) / 1000 : null;
-  // Persistir tentativa se houver usuário autenticado
-  let attemptId = null;
-  if (s.userId) {
-    try {
-      const tentativa = await prisma.tentativa.create({
-        data: {
-          usuarioId: s.userId,
-          desafioId: s.desafioId,
-          acertou: correta,
-          tempoResposta: tempoResposta != null ? Number(tempoResposta.toFixed(3)) : null,
-          pontos: correta ? cfg.pontos : 0,
-        }
-      });
-      attemptId = tentativa.id;
-    } catch (err) {
-      console.error('Falha ao registrar tentativa:', err);
-    }
-  }
+  // Atualiza estatísticas de sessão (não persiste ainda)
+  if (correta) s.correctCount += 1;
+  s.guessCount += 1;
+  // registra tentativa local para futura persistência
+  s.guesses.push({
+    acertou: correta,
+    tempoResposta: tempoResposta != null ? Number(tempoResposta.toFixed(3)) : null,
+    pontos: correta ? pontosGanhos : 0,
+  });
+  let attemptId = null; // será populado somente no final agora
   const payload = {
     correta,
     matchType,
     titulo: track.titulo,
     artista: track.artista,
-    score: s.score,
+  score: s.score,
+  pontosGanhos: correta ? pontosGanhos : 0,
+  pontosBase: correta ? pontosBase : 0,
+  bonusTempo: correta ? bonusTempo : 0,
     round: s.current + 1,
     totalRounds: s.tracks.length,
     tempoResposta,
@@ -222,6 +237,21 @@ export async function submitGuess(req, res) { // lógica para enviar palpite do 
   s.roundStartedAt = null;
   if (s.current >= s.tracks.length) {
     payload.finished = true;
+    if (s.userId && s.guesses.length) {
+      try {
+        await prisma.tentativa.createMany({
+          data: s.guesses.map(g => ({
+            usuarioId: s.userId,
+            desafioId: s.desafioId,
+            acertou: g.acertou,
+            tempoResposta: g.tempoResposta,
+            pontos: g.pontos,
+          })),
+        });
+      } catch (err) {
+        console.error('Falha ao registrar tentativas:', err);
+      }
+    }
   }
   res.json(payload);
 }

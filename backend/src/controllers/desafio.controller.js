@@ -16,7 +16,7 @@ function toDesafioDTO(d) {
 
 export const listarDesafios = async (req, res) => {
     try {
-        // 'DesafioMusica' não possui relação 'musica'; removemos include inválido
+        // 'DesafioMusica' não possui relação 'musica'; dai removemos include inválido
         const desafios = await prisma.desafio.findMany({
             include: { _count: { select: { musicas: true } } },
             orderBy: { id: 'desc' }

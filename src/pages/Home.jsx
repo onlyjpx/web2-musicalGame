@@ -1,6 +1,7 @@
 import { motion as _m } from "motion/react";
-import { Sun, Moon, User, LogIn, UserPlus, LogOut, Shield, Trophy, Zap, Music2, Users, Compass, Sparkles } from "lucide-react";
+import { Sun, Moon, User, LogIn, UserPlus, LogOut, Shield, Trophy, Zap, Music2, Users, Compass, Sparkles, UserPenIcon, UserPen, UserRoundPenIcon, Music2Icon, Music4Icon, MusicIcon, Music3Icon, MinusIcon, FileMusicIcon } from "lucide-react";
 import { useState, useEffect } from "react";
+import { api } from '../services/api';
 import { LoginGoogleCustom } from '../components/googleLogin'
 import { useNavigate } from 'react-router-dom'
 import { useAuth } from '../hooks/useAuth';
@@ -57,12 +58,65 @@ export default function Home() {
     }
   };
 
-  // métricas mock (futuro pode vir de endpoint /meta/estatisticas)
+  // métricas reais via backend /meta/stats
+  const [statsData, setStatsData] = useState(null);
+  const [statsLoading, setStatsLoading] = useState(false);
+  const [statsErro, setStatsErro] = useState('');
+
+  useEffect(()=> {
+    let cancel = false;
+    async function loadStats() {
+      setStatsLoading(true); setStatsErro('');
+      try {
+        const { data } = await api.get('/meta/stats');
+        if (!cancel) setStatsData(data);
+      } catch {
+        if (!cancel) setStatsErro('Falha ao carregar');
+      } finally { if (!cancel) setStatsLoading(false); }
+    }
+    loadStats();
+    const interval = setInterval(loadStats, 60000); // atualiza a cada 1 min
+    return () => { cancel = true; clearInterval(interval); };
+  }, []);
+
+  const formatNum = (n) => {
+    if (n == null) return '—';
+    if (n >= 1_000_000) return (n/1_000_000).toFixed(1).replace(/\.0$/,'')+'M';
+    if (n >= 1_000) return (n/1_000).toFixed(1).replace(/\.0$/,'')+'k';
+    return String(n);
+  };
+
   const stats = [
-    { icon: <Music2 className="w-4 h-4" />, label: 'Músicas', value: '5k+' },
-    { icon: <Trophy className="w-4 h-4" />, label: 'Desafios', value: '320+' },
-    { icon: <Users className="w-4 h-4" />, label: 'Jogadores', value: '1.2k+' },
-    { icon: <Zap className="w-4 h-4" />, label: 'Acurácia Média', value: '68%' },
+    {
+      key:'musicas',
+      icon: <Music2 className="w-4 h-4" />, label: 'Músicas Únicas', value: formatNum(statsData?.musicas),
+      subtitle: 'No banco de desafios', tooltip: 'Total de faixas distintas associadas a desafios.'
+    },
+    {
+      key:'desafios',
+      icon: <Trophy className="w-4 h-4" />, label: 'Desafios Ativos', value: formatNum(statsData?.desafios),
+      subtitle: 'Criados pela comunidade', tooltip: 'Quantidade total de desafios cadastrados.'
+    },
+    {
+      key:'jogadores',
+      icon: <Users className="w-4 h-4" />, label: 'Jogadores', value: formatNum(statsData?.jogadores),
+      subtitle: 'Usuários registrados', tooltip: 'Usuários que possuem conta e/ou tentativas.'
+    },
+    {
+      key:'tentativas',
+      icon: <Zap className="w-4 h-4" />, label: 'Tentativas', value: formatNum(statsData?.tentativas),
+      subtitle: 'Palpites feitos', tooltip: 'Número de palpites registrados (acertos + erros).' 
+    },
+    {
+      key:'acuracia',
+      icon: <Sparkles className="w-4 h-4" />, label: 'Acurácia Média', value: statsData ? (statsData.mediaAcuracia+'%') : '—',
+      subtitle: 'Acertos / tentativas', tooltip: 'Percentual médio de sucesso em todas as tentativas.'
+    },
+    {
+      key:'pontos',
+      icon: <Music4Icon className="w-4 h-4" />, label: 'Pontos Totais', value: formatNum(statsData?.pontosTotais),
+      subtitle: 'Pontuação acumulada', tooltip: 'Soma de todos os pontos gerados por acertos.'
+    }
   ];
 
   const roadmap = [
@@ -71,9 +125,29 @@ export default function Home() {
     { title: 'Skins & Badges', text: 'Colecione conquistas por streaks.' },
   ];
 
+  // mini ranking preview
+  const [rankingPreview, setRankingPreview] = useState([]);
+  const [rankLoading, setRankLoading] = useState(false);
+  const [rankErro, setRankErro] = useState('');
+
+  useEffect(()=> {
+    let cancel = false;
+    async function loadRanking() {
+      setRankLoading(true); setRankErro('');
+      try {
+        const { data } = await api.get('/ranking/global?limit=5');
+        if (!cancel) setRankingPreview(data.ranking || []);
+  } catch {
+        if (!cancel) setRankErro('Falha ao carregar ranking');
+      } finally { if (!cancel) setRankLoading(false); }
+    }
+    loadRanking();
+    return () => { cancel = true; };
+  }, []);
+
   return (
   <div className={`${resolvedTheme === 'dark' ? 'dark bg-gradient-to-b from-black via-zinc-950 to-black text-white' : 'bg-gradient-to-b from-white via-slate-50 to-white text-black'} relative min-h-screen overflow-hidden`}> 
-      {/* Background decorative blobs */}
+      {/* Background com os blobs */}
       <div className="pointer-events-none select-none absolute inset-0 opacity-[0.15] dark:opacity-[0.25]">
         <div className="absolute -top-32 -left-32 w-80 h-80 bg-gradient-to-br from-indigo-500/60 to-fuchsia-500/60 blur-3xl rounded-full" />
         <div className="absolute top-1/2 -right-32 w-72 h-72 bg-gradient-to-br from-sky-400/50 to-emerald-400/50 blur-3xl rounded-full" />
@@ -81,8 +155,18 @@ export default function Home() {
       {/* Header */}
       <header className="sticky top-0 z-50 backdrop-blur-md bg-white/70 dark:bg-black/70 border-b border-gray-200 dark:border-gray-800">
         <div className="max-w-5xl mx-auto px-4 py-3 flex justify-between items-center">
-          <h1 className="font-bold text-xl">Music Guessr</h1>
+          <div className="flex items-center gap-2">
+            <Music2Icon className="w-5 h-5" />
+            <h1 className="font-bold text-xl">Music Guessr</h1>
+          </div>
           <div className="flex items-center gap-4">
+            <button
+              onClick={()=> navigate('/ranking')}
+              className="p-2 rounded-full bg-gray-200 dark:bg-gray-800 hover:bg-gray-300 dark:hover:bg-gray-700 transition-colors"
+              aria-label="Ranking Global"
+            >
+              <Trophy className="w-5 h-5" />
+            </button>
             <button onClick={toggleTheme}>
               {resolvedTheme === 'dark' ? <Sun className="w-5 h-5" /> : <Moon className="w-5 h-5" />}
             </button>
@@ -111,6 +195,12 @@ export default function Home() {
         {loading ? 'Carregando...' : 'Logado'}
                         </p>
                       </div>
+                      <button
+                        onClick={() => navigate('/perfil')}
+                        className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
+                      >
+                        <UserRoundPenIcon className="w-4 h-4" /> Perfil
+                      </button>
                       <button
                         onClick={handleLogout}
                         className="w-full px-4 py-2 text-left text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 flex items-center gap-2"
@@ -161,12 +251,27 @@ export default function Home() {
           </div>
         </_m.div>
         {/* Stats */}
-        <div className="mt-16 grid grid-cols-2 sm:grid-cols-4 gap-4 max-w-3xl mx-auto">
+        <div className="mt-16 grid grid-cols-2 md:grid-cols-3 lg:grid-cols-6 gap-4 max-w-6xl mx-auto">
           {stats.map(s => (
-            <div key={s.label} className="relative rounded-xl p-4 bg-white/70 dark:bg-zinc-900/60 backdrop-blur border border-zinc-200 dark:border-zinc-800 shadow-sm overflow-hidden">
-              <div className="flex items-center gap-2 text-xs font-medium text-indigo-600 dark:text-indigo-400">{s.icon}<span>{s.label}</span></div>
-              <div className="mt-2 text-lg font-bold tracking-tight">{s.value}</div>
-              <div className="absolute -bottom-6 -right-4 w-16 h-16 bg-gradient-to-tr from-indigo-500/10 to-fuchsia-500/10 rounded-full blur-xl" />
+            <div
+              key={s.key}
+              title={s.tooltip}
+              className="group relative rounded-2xl p-4 bg-gradient-to-br from-white/80 to-white/60 dark:from-zinc-900/70 dark:to-zinc-900/40 backdrop-blur border border-zinc-200/70 dark:border-zinc-800/70 shadow-sm overflow-hidden hover:shadow-md transition-shadow"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2 text-[10px] font-semibold uppercase tracking-wide text-indigo-600 dark:text-indigo-400">
+                  <span className="inline-flex items-center justify-center w-6 h-6 rounded-md bg-indigo-600/10 dark:bg-indigo-500/10 text-indigo-600 dark:text-indigo-400 ring-1 ring-indigo-500/20">{s.icon}</span>
+                  <span className="truncate max-w-[5rem] sm:max-w-none">{s.label}</span>
+                </div>
+                <span className="opacity-0 group-hover:opacity-100 text-[9px] px-2 py-0.5 rounded-full bg-indigo-600 text-white transition">info</span>
+              </div>
+              <div className="mt-3 text-xl font-bold tracking-tight flex items-end gap-1 text-zinc-900 dark:text-zinc-100">
+                {statsLoading ? <span className="animate-pulse h-5 w-14 rounded bg-gray-200 dark:bg-gray-800" /> : s.value}
+              </div>
+              <div className="mt-1 text-[10px] font-medium text-gray-500 dark:text-gray-400">{s.subtitle}</div>
+              {statsErro && s.key==='musicas' && !statsLoading && <div className="text-[10px] text-red-500 mt-1">{statsErro}</div>}
+              <div className="absolute -bottom-6 -right-4 w-20 h-20 bg-gradient-to-tr from-indigo-500/10 via-fuchsia-500/10 to-rose-500/10 rounded-full blur-xl" />
+              <div className="absolute inset-0 rounded-2xl ring-1 ring-transparent group-hover:ring-indigo-500/30 transition" />
             </div>
           ))}
         </div>
@@ -222,6 +327,45 @@ export default function Home() {
           </div>
         ))}
         {/* Roadmap / Próximos */}
+        {/* Mini Ranking Preview */}
+        <div id="sec-ranking" className="scroll-mt-32">
+          <_m.h3 initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }} transition={{ duration:.5 }} className="text-2xl font-bold mb-6 flex items-center gap-2">Top Jogadores <Trophy className="w-5 h-5 text-indigo-500" /></_m.h3>
+          <div className="rounded-2xl overflow-hidden border border-zinc-200 dark:border-zinc-800 bg-white/70 dark:bg-zinc-900/60 backdrop-blur">
+            <div className="grid grid-cols-[auto,1fr,auto] gap-3 px-4 py-2 text-[11px] font-medium text-gray-500 dark:text-gray-400 border-b border-zinc-200 dark:border-zinc-800">
+              <span>#</span><span>Jogador</span><span>Pontos</span>
+            </div>
+            <div className="divide-y divide-zinc-200 dark:divide-zinc-800 text-[11px]">
+              {rankLoading && Array.from({length:5}).map((_,i)=>(
+                <div key={i} className="px-4 py-3 animate-pulse flex items-center gap-3">
+                  <div className="w-4 h-3 bg-gray-200 dark:bg-gray-800 rounded" />
+                  <div className="flex items-center gap-3 flex-1 min-w-0">
+                    <div className="w-7 h-7 rounded-full bg-gray-200 dark:bg-gray-800" />
+                    <div className="h-3 w-32 bg-gray-200 dark:bg-gray-800 rounded" />
+                  </div>
+                  <div className="h-3 w-10 bg-gray-200 dark:bg-gray-800 rounded" />
+                </div>
+              ))}
+              {!rankLoading && rankingPreview.map(r => (
+                <button key={r.usuarioId} onClick={()=> navigate('/ranking')} className="w-full text-left px-4 py-2 grid grid-cols-[auto,1fr,auto] gap-3 items-center hover:bg-indigo-50 dark:hover:bg-zinc-800/60 transition">
+                  <span className={`font-semibold ${r.posicao <=3 ? 'text-indigo-600 dark:text-indigo-400' : ''}`}>{r.posicao}</span>
+                  <div className="flex items-center gap-3 min-w-0">
+                    <img src={r.picture} alt="pic" className="w-7 h-7 rounded-full object-cover" />
+                    <span className="truncate font-medium text-gray-700 dark:text-gray-200">{r.nome}</span>
+                  </div>
+                  <span className="font-semibold tabular-nums text-gray-800 dark:text-gray-100">{r.pontos}</span>
+                </button>
+              ))}
+              {!rankLoading && !rankingPreview.length && (
+                <div className="px-4 py-4 text-gray-500 dark:text-gray-400">{rankErro || 'Sem dados ainda.'}</div>
+              )}
+            </div>
+            <div className="p-3 flex justify-end">
+              <button onClick={()=> navigate('/ranking')} className="text-[11px] font-medium text-indigo-600 dark:text-indigo-400 hover:underline">Ver ranking completo →</button>
+            </div>
+          </div>
+        </div>
+        
+        {/* Roadmap / Próximos */}
         <div className="mt-4" id="sec-roadmap">
           <_m.h3 initial={{ opacity:0, y:20 }} whileInView={{ opacity:1, y:0 }} transition={{ duration:.5 }} className="text-2xl font-bold mb-6 flex items-center gap-2">Próximos Passos <Compass className="w-5 h-5 text-indigo-500" /></_m.h3>
           <div className="grid gap-5 md:grid-cols-3">
@@ -252,7 +396,7 @@ export default function Home() {
       {/* Footer */}
   <footer className="border-t border-gray-200 dark:border-gray-800 py-10 text-center text-xs text-gray-500 dark:text-gray-400 mt-10">
         <p className="mb-2">© 2025 Music Guessr • Feito com música e código</p>
-        <p>Alpha Preview — feedback é bem-vindo.</p>
+        <p>Website em processo de desenvolvimento - Projeto Web II.</p>
       </footer>
 
       {/* Botão flutuante para admin */}

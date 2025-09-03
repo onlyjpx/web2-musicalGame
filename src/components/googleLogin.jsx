@@ -1,4 +1,5 @@
-import { useRef, useState } from 'react';
+import { useState } from 'react';
+import { useNavigate } from 'react-router-dom';
 import { motion as _m, AnimatePresence } from 'motion/react';
 import { useGoogleLogin } from "@react-oauth/google";
 import BotaoAnimado from "./reusable/botaoAnimado";
@@ -9,7 +10,8 @@ export function LoginGoogleCustom() {
   const [finalizou, setFinalizou] = useState(false);
   const [mostrarBotao, setMostrarBotao] = useState(true);
   const [estadoBotao, setEstadoBotao] = useState('idle'); // 'idle' | 'loading' | 'success' | 'error'
-  const pendingAuthRef = useRef(null);
+  // ref removido (não precisamos mais atrasar a aplicação do auth)
+  const navigate = useNavigate();
 
   // Configurações de tempo (ms)
   const SUCCESS_DISPLAY_MS = 800;    // tempo mostrando "Conectado"
@@ -23,18 +25,17 @@ export function LoginGoogleCustom() {
           try {
             const response = await axios.post("http://localhost:3000/auth/google", { code: tokenResponse.code });
             const { token, usuario } = response.data;
-            // Guarda para aplicar após animação
-            pendingAuthRef.current = { token, usuario };
+            // Aplica imediatamente para evitar perder rotas protegidas caso o usuário clique rápido
+            applyAuth(token, usuario);
             setFinalizou(true);
             setEstadoBotao('success');
-            // Exibe sucesso, depois inicia saída, em seguida aplica auth
+            // Ainda executa animação de saída e navegação (se estiver na página de login)
             setTimeout(() => {
-              setMostrarBotao(false); // dispara exit animation
+              setMostrarBotao(false);
               setTimeout(() => {
-                if (pendingAuthRef.current) {
-                  const { token: tk, usuario: u } = pendingAuthRef.current;
-                  applyAuth(tk, u);
-                  pendingAuthRef.current = null;
+                // redireciona para home somente se já não está nela
+                if (window.location.pathname === '/login') {
+                  navigate('/');
                 }
               }, EXIT_ANIM_MS);
             }, SUCCESS_DISPLAY_MS);

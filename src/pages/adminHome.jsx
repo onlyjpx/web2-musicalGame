@@ -15,7 +15,7 @@ export default function AdminHome() {
 	function updateMusicasCount(desafioId, count) {
 		setDesafios(prev => prev.map(d => d.id === desafioId ? { ...d, musicasCount: count } : d));
 	}
-	const { musicas, toggle: toggleMusicas, handleFormChange: handleMusicaChange, adicionar: adicionarMusica, remover: removerMusica } = useMusicasDesafio({ onUpdateMusicasCount: updateMusicasCount });
+	const { musicas, toggle: toggleMusicas, handleFormChange: handleMusicaChange, adicionar: adicionarMusica, remover: removerMusica, selecionarSugestao, limparSelecao } = useMusicasDesafio({ onUpdateMusicasCount: updateMusicasCount });
     const navigate = useNavigate();
 
 	useEffect(() => { carregar(); }, [carregar]);
@@ -91,12 +91,14 @@ export default function AdminHome() {
 									d={d}
 									musicaState={musicas[d.id]}
 									onToggleMusicas={toggleMusicas}
-									onAddMusica={(id, cb) => adicionarMusica(id, () => { afterAddMusica(id); cb && cb(); })}
+									onAddMusica={(id, cb, deezerId) => adicionarMusica(id, () => { afterAddMusica(id); cb && cb(); }, deezerId)}
 									onFormMusicaChange={handleMusicaChange}
 									onUpdate={atualizar}
 									onDelete={() => solicitarExclusao(d)}
 									onAddMusicaCount={afterAddMusica}
 									onRemoveMusica={(desafioId, musica)=> removerMusica(desafioId, musica)}
+									onSelecionarSugestao={(id, s)=> selecionarSugestao(id, s)}
+									onLimparSelecao={(id)=> limparSelecao(id)}
 								/>
 							))}
 						</ul>

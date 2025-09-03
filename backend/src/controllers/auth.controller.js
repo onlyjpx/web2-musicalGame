@@ -73,9 +73,11 @@ export const googleLogin = async (req, res) => {
             })
         }
 
-        const tokenJWT = gerarToken({ id: googleUser.id, nome: googleUser.nome, tipo: "usuario"});
+    // IMPORTANTE: o id do token deve ser o id do usuário no banco, não o id do Google (que não estamos recebendo aqui)
+    // Caso contrário, rotas autenticadas (ex: /profile/me) não localizarão o usuário e retornarão 401.
+    const tokenJWT = gerarToken({ id: usuario.id, email: usuario.email, nome: usuario.nome, tipo: usuario.tipo });
 
-        res.json( { token: tokenJWT, usuario });
+    res.json({ token: tokenJWT, usuario });
 
     }catch(error){
         console.error("Algo deu errado: ", error);
