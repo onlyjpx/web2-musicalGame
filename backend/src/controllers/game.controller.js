@@ -1,7 +1,8 @@
 import prisma from '../prisma/client.js';
 import { buscarMusicaDeezerPorId } from '../services/deezer.service.js';
+import { limitarTamanho } from '../utils/validation.js';
 
-// Sessões em memória (MVP). Em produção usar Redis ou persistência.
+// Sessões em memória (MVP). Em produção, usar Redis ou outra forma de persistência.
 const sessions = new Map();
 
 // Configurações de jogo por dificuldade
@@ -56,18 +57,18 @@ function levenshtein(a, b, max = 5) {
   return prev[lenA];
 }
 
-function similarity(a, b) { // Lógica de similaridade
+function similarity(a, b) { // Calcula similaridade (0..1) entre dois textos
   if (!a || !b) return 0;
   const dist = levenshtein(a, b, 8);
   const maxLen = Math.max(a.length, b.length);
   return 1 - dist / maxLen;
 }
 
-function gerarSessionId() { // gera um id para a sessão atual
-  return Math.random().toString(36).slice(2) + Date.now().toString(36);
+function gerarSessionId() { // Gera um ID para a sessão atual
+  return Math.random().toString(36).slice(2) + Date.now().toString(36); 
 }
 
-export async function startGame(req, res) { // lógica de início de jogo
+export async function startGame(req, res) { // Inicia um jogo para um desafio
   const { desafioId } = req.params;
   try {
     const desafio = await prisma.desafio.findUnique({
@@ -110,9 +111,9 @@ export async function startGame(req, res) { // lógica de início de jogo
       current: 0,
       score: 0,
       createdAt: Date.now(),
-  roundStartedAt: null,
-  correctCount: 0,
-  guessCount: 0,
+      roundStartedAt: null,
+      correctCount: 0,
+      guessCount: 0,
     guesses: [], // {acertou, tempoResposta, pontos}
     });
 
@@ -128,7 +129,7 @@ export async function startGame(req, res) { // lógica de início de jogo
   }
 }
 
-export function getCurrent(req, res) { // lógica para obter o estado atual do jogo
+export function getCurrent(req, res) { // Retorna o estado atual da sessão (rodada vigente)
   const { sessionId } = req.params;
   const s = sessions.get(sessionId);
   if (!s) return res.status(404).json({ error: { code: 'SESSAO_INVALIDA', message: 'Sessão não encontrada' } });
@@ -149,10 +150,12 @@ export function getCurrent(req, res) { // lógica para obter o estado atual do j
   });
 }
 
-export async function submitGuess(req, res) { // lógica para enviar palpite do nome da música + persistência de tentativa
+export async function submitGuess(req, res) { // Recebe palpite do usuário e acumula tentativa para persistir ao final
   const { sessionId } = req.params;
   const { answer } = req.body;
   if (typeof answer !== 'string') return res.status(400).json({ error: { code: 'RESPOSTA_OBRIGATORIA', message: 'Resposta obrigatória' } });
+  const answerSan = limitarTamanho(answer, 120);
+  if (!answerSan.trim()) return res.status(400).json({ error: { code: 'RESPOSTA_VAZIA', message: 'Resposta vazia' } });
   const s = sessions.get(sessionId);
   if (!s) return res.status(404).json({ error: { code: 'SESSAO_INVALIDA', message: 'Sessão não encontrada' } });
   if (s.current >= s.tracks.length) return res.status(400).json({ error: { code: 'SESSAO_FINALIZADA', message: 'Sessão já finalizada' } });
@@ -160,7 +163,7 @@ export async function submitGuess(req, res) { // lógica para enviar palpite do 
   const cfg = DIFFICULTY_CONFIG[s.dificuldade] || DIFFICULTY_CONFIG.FACIL;
   // Remove sufixos entre parênteses do título (ex: "(remaster 2011)") porque isso não faz parte do nome da música
   const tituloBase = track.titulo.replace(/\([^)]*\)/g, ' ');
-  const normalizedAnswer = normalizarTexto(answer);
+  const normalizedAnswer = normalizarTexto(answerSan);
   const normalizedTitulo = normalizarTexto(track.titulo);
   const normalizedTituloBase = normalizarTexto(tituloBase);
   let correta = false;
@@ -217,7 +220,7 @@ export async function submitGuess(req, res) { // lógica para enviar palpite do 
     tempoResposta: tempoResposta != null ? Number(tempoResposta.toFixed(3)) : null,
     pontos: correta ? pontosGanhos : 0,
   });
-  let attemptId = null; // será populado somente no final agora
+  let attemptId = null; // Mantido por compatibilidade (não usado agora)
   const payload = {
     correta,
     matchType,
@@ -232,8 +235,8 @@ export async function submitGuess(req, res) { // lógica para enviar palpite do 
     tempoResposta,
     attemptId,
   };
-  s.current += 1; // avança para próxima
-  // reset start time para próxima rodada
+  s.current += 1; // Avança para a próxima rodada
+  // Reseta o tempo de início para a próxima rodada
   s.roundStartedAt = null;
   if (s.current >= s.tracks.length) {
     payload.finished = true;
@@ -256,7 +259,7 @@ export async function submitGuess(req, res) { // lógica para enviar palpite do 
   res.json(payload);
 }
 
-// Limpeza simples de sessões antigas (>2h)
+// Limpeza periódica de sessões antigas (>2h)
 setInterval(() => {
   const now = Date.now();
   for (const [id, s] of sessions.entries()) {

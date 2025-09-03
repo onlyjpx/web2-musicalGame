@@ -1,16 +1,18 @@
 import axios from 'axios';
 import { getSpotifyToken } from '../services/spotify.service.js';
+import { sanitizeBuscaSimples } from '../utils/validation.js';
 
 export const buscarMusicas = async (req, res) => {
     try{
-        const { query } = req.query;
-        if (!query) {
+    const { query } = req.query;
+    const qSan = sanitizeBuscaSimples(query || '');
+    if (!qSan) {
             return res.status(400).json({ error: "Query de busca é obrigatória" });
         }
 
         const token = await getSpotifyToken();
         const response = await axios.get(
-            `https://api.spotify.com/v1/search?q=${encodeURIComponent(query)}&type=track&limit=10`,
+            `https://api.spotify.com/v1/search?q=${encodeURIComponent(qSan)}&type=track&limit=10`,
             {
                 headers: { Authorization: `Bearer ${token}`,},
             }

@@ -6,6 +6,36 @@ export const LIMITES = {
   MAX_MUSICAS_DESAFIO: 50,
 };
 
+// Limita tamanho genérico de string; remove caracteres de controle
+export function limitarTamanho(v, max = 255) {
+  if (typeof v !== 'string') return '';
+  // Remove caracteres de controle ASCII (0-31 exceto \n, \r, \t) via filtragem manual para evitar regex com escapes de controle
+  let s = '';
+  for (let i = 0; i < v.length; i++) {
+    const code = v.charCodeAt(i);
+    if (code < 32 && code !== 9 && code !== 10 && code !== 13) continue;
+    s += v[i];
+  }
+  s = s.trim();
+  if (s.length > max) s = s.slice(0, max);
+  return s;
+}
+
+// Sanitiza entradas de busca simples (apenas letras, números, espaços e poucos símbolos seguros)
+export function sanitizeBuscaSimples(v, max = 80) {
+  if (typeof v !== 'string') return '';
+  let s = v.normalize('NFD').replace(/[^\p{L}\p{N}\s'\-_.]/gu, '').replace(/\s+/g, ' ').trim();
+  if (s.length > max) s = s.slice(0, max);
+  return s;
+}
+
+// Verifica se é inteiro positivo (retorna número ou null)
+export function parsePositiveInt(v, fallback = null) {
+  const n = Number(v);
+  if (!Number.isInteger(n) || n < 0) return fallback;
+  return n;
+}
+
 export function sanitizeTexto(v, max) {
   if (typeof v !== 'string') return '';
   const trimmed = v.trim();

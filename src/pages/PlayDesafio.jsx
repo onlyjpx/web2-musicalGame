@@ -266,16 +266,16 @@ export default function PlayDesafio() {
     setProgress(0);
     setTimeLeft(null);
     setSnippetEnded(false);
-  setScoreDelta(null);
-  setAcertos(0);
-  setErros(0);
-  setLastPoints(null);
-  setShowBonusDetail(false);
-  setStreak(0);
-  setBestStreak(0);
-  setStreakProgress(1);
-  clearStreakInterval();
-  setReplayCount(0);
+    setScoreDelta(null);
+    setAcertos(0);
+    setErros(0);
+    setLastPoints(null);
+    setShowBonusDetail(false);
+    setStreak(0);
+    setBestStreak(0);
+    setStreakProgress(1);
+    clearStreakInterval();
+    setReplayCount(0);
     (async () => {
       try {
         const { data } = await api.post(`/game/start/${id}`);
@@ -397,28 +397,35 @@ export default function PlayDesafio() {
         )}
       </AnimatePresence>
   <div className="flex flex-col gap-3">
-        {showCover && current.imagem ? (
-          <div className={`relative w-full aspect-video flex rounded-2xl overflow-hidden border backdrop-blur-xl shadow-xl transition-all duration-500 ${feedback?.correta ? 'border-emerald-500/60 bg-gradient-to-br from-emerald-500/25 via-emerald-500/15 to-emerald-500/5 dark:from-emerald-600/25 dark:via-emerald-600/10 dark:to-emerald-600/5' : 'border-zinc-200/70 dark:border-zinc-800/70 bg-gradient-to-br from-white/80 via-white/60 to-white/30 dark:from-zinc-900/80 dark:via-zinc-900/50 dark:to-zinc-900/30'}`}>
-            {/* background com blur da div da preview */}
+        {/* Preview Container Unificado (diferença somente: capa é ocultada em EXTREMO) */}
+        <div className={`relative w-full aspect-video flex rounded-2xl overflow-hidden border shadow-xl transition-all duration-500 ${feedback ? (feedback.correta 
+          ? 'border-emerald-500/60 bg-gradient-to-br from-emerald-500/25 via-emerald-500/15 to-emerald-500/5 dark:from-emerald-600/25 dark:via-emerald-600/10 dark:to-emerald-600/5'
+          : 'border-rose-500/60 bg-gradient-to-br from-rose-600/25 via-rose-600/15 to-rose-600/5 dark:from-rose-600/25 dark:via-rose-600/10 dark:to-rose-600/5')
+          : 'border-zinc-200/70 dark:border-zinc-800/70 bg-gradient-to-br from-white/80 via-white/60 to-white/30 dark:from-zinc-900/80 dark:via-zinc-900/50 dark:to-zinc-900/30'}`}>
+          {/* Background (blur da capa se disponível e permitido) */}
+          {showCover && current.imagem && (
             <div className="absolute inset-0">
               <img src={current.imagem} alt="ambient" className="w-full h-full object-cover scale-110 blur-2xl opacity-40" />
               <div className="absolute inset-0 bg-gradient-to-tr from-black/40 via-transparent to-black/20 dark:from-black/60 dark:via-transparent dark:to-black/40" />
             </div>
-            <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 text-center z-10">
-              <AnimatePresence>
-                {!feedback?.correta && (
-                  <_m.div
-                    key="conteudo-preview"
-                    initial={{ opacity: 0, y: 12, scale: 0.9 }}
-                    animate={{ opacity: 1, y: 0, scale: 1 }}
-                    exit={{ opacity: 0, y: -12, scale: 0.9 }}
-                    transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-                    className="flex flex-col items-center justify-center gap-5"
-                  >
+          )}
+          {/* Conteúdo principal enquanto não há feedback correto */}
+          <div className="absolute inset-0 flex flex-col items-center justify-center gap-5 text-center z-10">
+            <AnimatePresence>
+              {!feedback && (
+                <_m.div
+                  key="conteudo-preview-unificado"
+                  initial={{ opacity: 0, y: 12, scale: 0.9 }}
+                  animate={{ opacity: 1, y: 0, scale: 1 }}
+                  exit={{ opacity: 0, y: -12, scale: 0.9 }}
+                  transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+                  className="flex flex-col items-center justify-center gap-5"
+                >
+                  {showCover && current.imagem ? (
                     <div className="relative group">
                       <div className="absolute -inset-6 rounded-3xl bg-gradient-to-br from-indigo-500/0 via-fuchsia-500/0 to-rose-500/0 group-hover:from-indigo-500/10 group-hover:via-fuchsia-500/10 group-hover:to-rose-500/10 blur-xl transition-opacity" />
                       <_m.img
-                        key={current.imagem + 'capa'}
+                        key={current.imagem + 'capa-unificada'}
                         src={current.imagem}
                         alt="Capa"
                         initial={{ rotate: -2 }}
@@ -427,98 +434,71 @@ export default function PlayDesafio() {
                       />
                       <div className="absolute inset-0 rounded-2xl pointer-events-none bg-gradient-to-br from-white/0 via-white/0 to-white/0 group-hover:from-white/5 group-hover:via-white/0 group-hover:to-white/10 transition-colors" />
                     </div>
-                    <div className="flex flex-col gap-2 items-center">
-                      <div className="flex items-center gap-2 flex-wrap justify-center">
-                        <span className="px-2 py-0.5 rounded-md bg-indigo-500/15 text-[10px] font-semibold tracking-wide text-indigo-600 dark:text-indigo-300 border border-indigo-500/30">Preview</span>
-                        <span className="px-2 py-0.5 rounded-md bg-gray-500/15 text-[10px] tracking-wide text-gray-600 dark:text-gray-300 border border-gray-500/30">Rodada {current.round}/{current.totalRounds}</span>
-                        <span className="px-2 py-0.5 rounded-md bg-fuchsia-500/15 text-[10px] tracking-wide text-fuchsia-600 dark:text-fuchsia-300 border border-fuchsia-500/30">{session.dificuldade}</span>
-                      </div>
+                  ) : (
+                    <div className="flex flex-col items-center gap-3">
+                      <span className="text-sm font-medium text-gray-700 dark:text-gray-300">{snippetEnded ? 'Preview finalizado' : 'Escutando preview...'}</span>
+                      {session?.dificuldade === 'EXTREMO' && (
+                        <span className="text-[10px] px-2 py-0.5 rounded bg-rose-500/15 border border-rose-500/30 text-rose-600 dark:text-rose-300 font-medium tracking-wide">Sem capa nesta dificuldade</span>
+                      )}
+                    </div>
+                  )}
+                  <div className="flex flex-col gap-2 items-center">
+                    <div className="flex items-center gap-2 flex-wrap justify-center">
+                      <span className="px-2 py-0.5 rounded-md bg-indigo-500/15 text-[10px] font-semibold tracking-wide text-indigo-600 dark:text-indigo-300 border border-indigo-500/30">Preview</span>
+                      <span className="px-2 py-0.5 rounded-md bg-gray-500/15 text-[10px] tracking-wide text-gray-600 dark:text-gray-300 border border-gray-500/30">Rodada {current.round}/{current.totalRounds}</span>
+                      <span className="px-2 py-0.5 rounded-md bg-fuchsia-500/15 text-[10px] tracking-wide text-fuchsia-600 dark:text-fuchsia-300 border border-fuchsia-500/30">{session.dificuldade}</span>
+                    </div>
+                    {showCover && (
                       <span className="text-sm font-medium text-gray-800 dark:text-gray-100">{snippetEnded ? 'Preview finalizado' : 'Escutando preview...'}</span>
-                      <div className="flex flex-col gap-1 mt-1 w-full max-w-xs">
-                        <div className="h-2.5 rounded bg-gray-300/60 dark:bg-gray-700/60 w-5/6 mx-auto animate-pulse" />
-                        <div className="h-2.5 rounded bg-gray-300/50 dark:bg-gray-700/50 w-2/3 mx-auto animate-pulse delay-75" />
-                        <div className="flex justify-center gap-2 mt-2">
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-200/70 dark:bg-gray-800/70 text-gray-500 dark:text-gray-400 border border-gray-300/60 dark:border-gray-700/60">Álbum ?</span>
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-200/70 dark:bg-gray-800/70 text-gray-500 dark:text-gray-400 border border-gray-300/60 dark:border-gray-700/60">Ano ?</span>
-                          <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-200/70 dark:bg-gray-800/70 text-gray-500 dark:text-gray-400 border border-gray-300/60 dark:border-gray-700/60">Gênero ?</span>
-                        </div>
+                    )}
+                    <div className="flex flex-col gap-1 mt-1 w-full max-w-xs">
+                      <div className="h-2.5 rounded bg-gray-300/60 dark:bg-gray-700/60 w-5/6 mx-auto animate-pulse" />
+                      <div className="h-2.5 rounded bg-gray-300/50 dark:bg-gray-700/50 w-2/3 mx-auto animate-pulse delay-75" />
+                      <div className="flex justify-center gap-2 mt-2">
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-200/70 dark:bg-gray-800/70 text-gray-500 dark:text-gray-400 border border-gray-300/60 dark:border-gray-700/60">Álbum ?</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-200/70 dark:bg-gray-800/70 text-gray-500 dark:text-gray-400 border border-gray-300/60 dark:border-gray-700/60">Ano ?</span>
+                        <span className="text-[10px] px-2 py-0.5 rounded-full bg-gray-200/70 dark:bg-gray-800/70 text-gray-500 dark:text-gray-400 border border-gray-300/60 dark:border-gray-700/60">Gênero ?</span>
                       </div>
                     </div>
-                  </_m.div>
+                  </div>
+                </_m.div>
+              )}
+            </AnimatePresence>
+          </div>
+          {/* Barra de progresso inferior */}
+          <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-white/10 dark:bg-black/20 overflow-hidden">
+            <div className={`h-full ${feedback ? (feedback.correta ? 'bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600' : 'bg-gradient-to-r from-rose-500 via-rose-600 to-red-600') : 'bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-rose-500'}`} style={{ width: `${Math.min(100, progress * 100)}%` }} />
+          </div>
+          {/* Overlay de feedback (acerto/erro) */}
+          <AnimatePresence>
+            {feedback && (
+              <_m.div
+                key={feedback.correta ? 'acerto-overlay-unificado' : 'erro-overlay-unificado'}
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                exit={{ opacity: 0, scale: 0.95 }}
+                transition={{ type: 'spring', stiffness: 260, damping: 22 }}
+                className="absolute inset-0 flex flex-col items-center justify-center text-center gap-2 p-6 pointer-events-none"
+                aria-live="assertive"
+              >
+                <span className={`px-3 py-1 rounded-full text-[11px] font-semibold tracking-wide shadow-sm backdrop-blur-sm border ${feedback.correta ? 'bg-emerald-500/20 border-emerald-400/40 text-emerald-200' : 'bg-rose-500/25 border-rose-400/40 text-rose-100'}`}>{feedback.correta ? 'ACERTOU' : 'ERROU'}</span>
+                <div className="flex flex-col gap-1">
+                  <p className="text-sm sm:text-base font-semibold text-white drop-shadow-sm line-clamp-2">{feedback.titulo}</p>
+                  {feedback.correta && feedback.artista && <p className="text-xs text-emerald-100/90">{feedback.artista}</p>}
+                </div>
+                {feedback.correta && (feedback.pontosGanhos || lastPoints) && (
+                  <div className="mt-1 text-[11px] flex items-center gap-1 text-emerald-100/90 font-medium">
+                    <span className="text-emerald-300">+{feedback.pontosGanhos || lastPoints?.pontosGanhos}</span>
+                    {typeof feedback.pontosBase === 'number' && typeof feedback.bonusTempo === 'number' && (
+                      <span className="opacity-80">= {feedback.pontosBase} + {feedback.bonusTempo}</span>
+                    )}
+                    {feedback.matchType && <span className="ml-2 px-2 py-0.5 rounded bg-emerald-500/25 border border-emerald-400/40 text-[10px] uppercase tracking-wide">{feedback.matchType}</span>}
+                  </div>
                 )}
-              </AnimatePresence>
-            </div>
-            <div className="absolute bottom-0 left-0 right-0 h-1.5 bg-white/10 dark:bg-black/20 overflow-hidden">
-              <div className={`h-full ${feedback?.correta ? 'bg-gradient-to-r from-emerald-400 via-emerald-500 to-emerald-600' : 'bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-rose-500'}`} style={{ width: `${Math.min(100, progress * 100)}%` }} />
-            </div>
-            <AnimatePresence>
-              {feedback?.correta && (
-                <_m.div
-                  key="acerto-overlay"
-                  initial={{ opacity: 0, scale: 0.95 }}
-                  animate={{ opacity: 1, scale: 1 }}
-                  exit={{ opacity: 0, scale: 0.95 }}
-                  transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-                  className="absolute inset-0 flex flex-col items-center justify-center text-center gap-2 p-6 pointer-events-none"
-                  aria-live="assertive"
-                >
-                  <span className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-[11px] font-semibold tracking-wide shadow-sm backdrop-blur-sm">ACERTOU</span>
-                  <div className="flex flex-col gap-1">
-                    <p className="text-sm sm:text-base font-semibold text-white drop-shadow-sm line-clamp-2">{feedback.titulo}</p>
-                    {feedback.artista && <p className="text-xs text-emerald-100/90">{feedback.artista}</p>}
-                  </div>
-                  {(feedback.pontosGanhos || lastPoints) && (
-                    <div className="mt-1 text-[11px] flex items-center gap-1 text-emerald-100/90 font-medium">
-                      <span className="text-emerald-300">+{feedback.pontosGanhos || lastPoints?.pontosGanhos}</span>
-                      {typeof feedback.pontosBase === 'number' && typeof feedback.bonusTempo === 'number' && (
-                        <span className="opacity-80">= {feedback.pontosBase} + {feedback.bonusTempo}</span>
-                      )}
-                      {feedback.matchType && <span className="ml-2 px-2 py-0.5 rounded bg-emerald-500/25 border border-emerald-400/40 text-[10px] uppercase tracking-wide">{feedback.matchType}</span>}
-                    </div>
-                  )}
-                </_m.div>
-              )}
-            </AnimatePresence>
-          </div>
-        ) : (
-          <div className={`aspect-video w-full rounded-xl flex items-center justify-center relative overflow-hidden backdrop-blur border transition-all duration-500 ${feedback?.correta ? 'border-emerald-500/60 bg-gradient-to-br from-emerald-600/25 via-emerald-600/10 to-emerald-600/5' : 'bg-white/70 dark:bg-zinc-900/60 border-zinc-200 dark:border-zinc-800'}`}>
-            {!feedback?.correta && (
-              <span className="relative z-10 text-sm text-gray-700 dark:text-gray-300">{snippetEnded ? 'Preview finalizado' : 'Escutando preview...'}</span>
+              </_m.div>
             )}
-            <div className={`absolute inset-0 pointer-events-none ${feedback?.correta ? 'bg-gradient-to-br from-emerald-400/20 via-emerald-500/15 to-emerald-600/10' : 'bg-gradient-to-br from-indigo-600/10 via-fuchsia-600/10 to-rose-600/10'}`} />
-            {session?.dificuldade === 'EXTREMO' && !feedback?.correta && (
-              <span className="absolute bottom-2 right-3 text-[10px] text-rose-500/80 font-semibold tracking-wide">Sem capa nesta dificuldade</span>
-            )}
-            <AnimatePresence>
-              {feedback?.correta && (
-                <_m.div
-                  key="acerto-overlay-sem-capa"
-                  initial={{ opacity: 0, y: 10 }}
-                  animate={{ opacity: 1, y: 0 }}
-                  exit={{ opacity: 0, y: -10 }}
-                  transition={{ type: 'spring', stiffness: 260, damping: 22 }}
-                  className="absolute inset-0 flex flex-col items-center justify-center text-center gap-2 p-6"
-                  aria-live="assertive"
-                >
-                  <span className="px-3 py-1 rounded-full bg-emerald-500/20 border border-emerald-400/40 text-emerald-200 text-[11px] font-semibold tracking-wide">ACERTOU</span>
-                  <div className="flex flex-col gap-1">
-                    <p className="text-sm sm:text-base font-semibold text-white drop-shadow-sm line-clamp-2">{feedback.titulo}</p>
-                    {feedback.artista && <p className="text-xs text-emerald-100/90">{feedback.artista}</p>}
-                  </div>
-                  {(feedback.pontosGanhos || lastPoints) && (
-                    <div className="mt-1 text-[11px] flex items-center gap-1 text-emerald-100/90 font-medium">
-                      <span className="text-emerald-300">+{feedback.pontosGanhos || lastPoints?.pontosGanhos}</span>
-                      {typeof feedback.pontosBase === 'number' && typeof feedback.bonusTempo === 'number' && (
-                        <span className="opacity-80">= {feedback.pontosBase} + {feedback.bonusTempo}</span>
-                      )}
-                      {feedback.matchType && <span className="ml-2 px-2 py-0.5 rounded bg-emerald-500/25 border border-emerald-400/40 text-[10px] uppercase tracking-wide">{feedback.matchType}</span>}
-                    </div>
-                  )}
-                </_m.div>
-              )}
-            </AnimatePresence>
-          </div>
-        )}
+          </AnimatePresence>
+        </div>
         <div className="flex flex-col gap-1">
           <div
             className="h-3 w-full rounded-full bg-gray-200/70 dark:bg-gray-800 overflow-hidden relative"
@@ -580,20 +560,7 @@ export default function PlayDesafio() {
           </div>
         </div>
       </form>
-      <AnimatePresence>
-        {feedback && !feedback.correta && (
-          <_m.div
-            key={feedback.titulo + 'erro'}
-            initial={{ opacity: 0, y: 10 }}
-            animate={{ opacity: 1, y: 0 }}
-            exit={{ opacity: 0, y: -10 }}
-            className="text-base font-semibold text-rose-600 dark:text-rose-400"
-            aria-live="assertive"
-          >
-            Errou – {feedback.titulo}
-          </_m.div>
-        )}
-      </AnimatePresence>
+  {/* Removido bloco separado de erro; agora overlay unificado */}
       {previousGuesses.length > 0 && (
         <div className="flex flex-col gap-1">
           <p className="text-[11px] font-medium text-gray-600 dark:text-gray-400">Palpites desta rodada</p>

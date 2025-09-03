@@ -8,7 +8,7 @@ export async function getProfile(req, res) {
     const usuario = await prisma.usuario.findUnique({ where: { id: userId }, select: { id: true, nome: true, email: true, tipo: true, picture: true, provider: true } });
     if (!usuario) return res.status(404).json({ error: { code: 'USUARIO_NAO_ENCONTRADO', message: 'Usuário não encontrado' } });
 
-    // Cada linha agora representa uma tentativa (palpite) de desafios finalizados
+  // Cada linha agora representa uma tentativa (palpite) de desafios finalizados
     const agregados = await prisma.tentativa.findMany({
       where: { usuarioId: userId },
       select: { id: true, pontos: true, acertou: true, tempoResposta: true, desafioId: true }
@@ -19,7 +19,7 @@ export async function getProfile(req, res) {
     const tempos = agregados.filter(t=> typeof t.tempoResposta === 'number').map(t=> t.tempoResposta);
     const mediaTempo = tempos.length ? +(tempos.reduce((a,b)=> a+b,0) / tempos.length).toFixed(2) : null;
 
-    // Agrupar por dificuldade via desafios relacionados
+  // Agrupa por dificuldade via desafios relacionados
     const desafiosIds = [...new Set(agregados.map(a=> a.desafioId))];
     const desafios = desafiosIds.length ? await prisma.desafio.findMany({ where: { id: { in: desafiosIds } }, select: { id: true, dificuldade: true } }) : [];
     const diffMap = new Map(desafios.map(d=> [d.id, d.dificuldade]));
@@ -45,7 +45,7 @@ export async function getProfile(req, res) {
         acertos: acertosAgg,
         taxaAcerto: totalTentativas ? Number(((acertosAgg / totalTentativas) * 100).toFixed(1)) : 0,
         pontosTotais: somaPontos,
-  mediaTempoResposta: mediaTempo,
+        mediaTempoResposta: mediaTempo,
         porDificuldade: diffStats,
       },
       recentes,

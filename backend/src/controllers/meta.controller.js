@@ -2,7 +2,7 @@ import prisma from '../prisma/client.js';
 
 export async function getStats(_req, res) {
   try {
-    // Promises em paralelo
+  // Executa consultas em paralelo para melhor desempenho
     const [jogadores, desafios, tentativasCount, acertosCount, pontosAgg, musicasDistinct] = await Promise.all([
       prisma.usuario.count(),
       prisma.desafio.count(),
