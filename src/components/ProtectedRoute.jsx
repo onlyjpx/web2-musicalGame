@@ -6,7 +6,7 @@ export default function ProtectedRoute({ children, roles }) {
   const { user, token, loading } = useAuth();
 
   if (loading) {
-    return <div className="min-h-screen flex items-center justify-center text-sm text-gray-500">Carregando...</div>;
+  return <div className="min-h-screen flex items-center justify-center text-sm text-slate-500">Carregando...</div>;
   }
 
   if (!token) {
@@ -18,7 +18,7 @@ export default function ProtectedRoute({ children, roles }) {
     if (!roles.includes(tipo)) {
       return <div className="min-h-screen flex flex-col items-center justify-center gap-4 p-4">
         <p className="text-lg font-medium">Acesso negado</p>
-        <p className="text-sm text-gray-500">Você não tem permissão para acessar esta página.</p>
+  <p className="text-sm text-slate-500">Você não tem permissão para acessar esta página.</p>
       </div>;
     }
   }

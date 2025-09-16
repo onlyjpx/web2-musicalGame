@@ -3,7 +3,8 @@ import { api } from '../services/api';
 import { motion as _m, AnimatePresence } from 'motion/react';
 import { useNavigate } from 'react-router-dom';
 import { useAuth } from '../hooks/useAuth';
-import { ArrowLeft } from 'lucide-react'
+//
+import ThemeToggle from '../components/reusable/ThemeToggle';
 import Home from './Home';
 
 const PERIODOS = [
@@ -49,6 +50,9 @@ export default function Ranking() {
         <div className="absolute bottom-0 right-0 w-80 h-80 bg-gradient-to-br from-sky-400/25 to-emerald-400/25 blur-3xl rounded-full" />
       </div>
       <header className="relative z-10 flex flex-col items-center text-center gap-4">
+        <div className="absolute top-0 right-0">
+          <ThemeToggle />
+        </div>
         <h1 className="text-3xl font-bold bg-clip-text text-transparent bg-gradient-to-r from-indigo-500 via-fuchsia-500 to-rose-500">Ranking Global</h1>
         <p className="text-sm text-gray-600 dark:text-gray-400">Veja os melhores jogadores por período e dificuldade.</p>
         <div className="flex flex-wrap gap-3 justify-center">

@@ -1,0 +1,400 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage{geometry}
+\usepackage{hyperref}
+\usepackage{graphicx}
+\usepackage{listings}
+\usepackage{xcolor}
+\usepackage{booktabs}
+\usepackage{tabularx}
+\usepackage{longtable}
+\usepackage{float}
+\geometry{margin=2.5cm}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+\lstdefinestyle{code}{
+  basicstyle=\ttfamily\small,
+  keywordstyle=\color{blue!70!black},
+  commentstyle=\color{green!50!black},
+  stringstyle=\color{red!60!black},
+  showstringspaces=false,
+  breaklines=true,
+  frame=single,
+  framerule=0.3pt,
+  numbers=left,
+  numberstyle=\tiny, 
+  xleftmargin=1em,
+}
+
+\title{Arquitetura e Implementação do Backend de um Jogo Musical Web: \textit{web2-musicalGame}}
+\author{Autor: Equipe do Projeto}
+\date{Setembro de 2025}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+Este artigo descreve em detalhe a arquitetura, o desenho das APIs e as principais decisões de implementação do backend do projeto \textit{web2-musicalGame}, bem como sua comunicação com o frontend React. O sistema provê autenticação por JWT, gerenciamento de desafios musicais com integração a metadados externos (Deezer/Spotify), mecânica de jogo com avaliação de respostas (\textit{fuzzy matching}) e persistência de tentativas apenas ao final de cada execução. Também discutimos sanitização/validação de entradas, agregações para ranking e perfis, e diretrizes para execução local e implantação.
+\end{abstract}
+
+\section{Introdução}
+Aplicações educacionais e de entretenimento musical se beneficiam de mecânicas de adivinhação com trechos de áudio curtos e progressão por dificuldade. O \textit{web2-musicalGame} oferece uma experiência de jogo onde usuários tentam identificar músicas a partir de prévias de áudio, com pontuação dinâmica e registro de desempenho. Este artigo foca no backend (Node.js + Express + Prisma) e na forma como expõe serviços consumidos pelo frontend (Vite + React).
+
+\section{Trabalhos Relacionados}
+Jogos de \textit{quiz} musical e plataformas de prática auditiva frequentemente utilizam APIs de metadados (p.~ex., Deezer/Spotify) e regras de comparação aproximada de texto para aceitar variações de grafia. Este projeto incorpora tais práticas, adicionando uma estratégia de persistência \textit{após conclusão} do desafio que simplifica consistência de ranking.
+
+\section{Arquitetura Geral}
+\subsection{Visão de alto nível}
+O backend é um serviço REST em Node.js (Express), com persistência por Prisma ORM e banco SQLite ou PostgreSQL. A autenticação usa JWT e o frontend consome os endpoints via Axios.
+
+\begin{itemize}
+  \item \textbf{Camada de Roteamento e Controladores}: mapeia endpoints para casos de uso (\texttt{auth}, \texttt{desafio}, \texttt{desafioMusica}, \texttt{game}, \texttt{ranking}, \texttt{profile}, \texttt{deezer}, \texttt{spotify}, \texttt{meta}).
+  \item \textbf{Middlewares}: autenticação e autorização (\textit{roles}).
+  \item \textbf{Serviços}: integração com provedores externos (p.~ex., Deezer) e utilidades de domínio.
+  \item \textbf{Utilitários}: validação e sanitização (limites de tamanho, normalização de dificuldade, parsing seguro de inteiros).
+\end{itemize}
+
+\subsection{Modelagem de dados (Prisma)}
+A seguir, um trecho do esquema (\texttt{schema.prisma}) com entidades centrais:\footnote{No repositório, o provider pode ser \texttt{postgresql} ou \texttt{sqlite}; a URL do banco é configurada via \texttt{DATABASE\_URL}.}
+
+\begin{lstlisting}[style=code, language=]
+model Usuario {
+  id         Int         @id @default(autoincrement())
+  nome       String
+  email      String      @unique
+  senha      String?
+  tipo       String      // "admin" ou "usuario"
+  provider   String      @default("local")
+  picture    String      @default("https://cdn-icons-png.flaticon.com/512/17/17004.png")
+  tentativas Tentativa[]
+}
+
+model Desafio {
+  id          Int              @id @default(autoincrement())
+  titulo      String
+  genero      String
+  dificuldade Dificuldade
+  tentativas  Tentativa[]
+  musicas     DesafioMusica[]
+  desafioCapa String?
+  createdAt   DateTime         @default(now())
+  updatedAt   DateTime         @updatedAt
+}
+
+model Tentativa {
+  id            Int      @id @default(autoincrement())
+  usuarioId     Int
+  desafioId     Int
+  acertou       Boolean
+  tempoResposta Float?
+  pontos        Int
+  usuario       Usuario  @relation(fields: [usuarioId], references: [id], onDelete: Cascade)
+  desafio       Desafio  @relation(fields: [desafioId], references: [id], onDelete: Cascade)
+}
+
+model DesafioMusica {
+  id         Int     @id @default(autoincrement())
+  desafioId  Int
+  deezerId   String
+  desafio    Desafio @relation(fields: [desafioId], references: [id], onDelete: Cascade)
+  createdAt  DateTime @default(now())
+
+  @@unique([desafioId, deezerId])
+}
+
+enum Dificuldade {
+  FACIL
+  MEDIO
+  DIFICIL
+  MUITO_DIFICIL
+  EXTREMO
+}
+\end{lstlisting}
+
+\section{Endpoints e Contratos}
+\subsection{Autenticação}
+\begin{itemize}
+  \item POST \texttt{/auth/register}, \texttt{/auth/login}, \texttt{/auth/google}: retorna \texttt{\{ user, token \}}
+  \item Middleware: extrai JWT (\texttt{Authorization: Bearer <token>}) e injeta \texttt{req.usuario}; rotas admin validam \texttt{usuario.tipo}.
+\end{itemize}
+
+\subsection{Administração de Desafios}
+\begin{itemize}
+  \item GET \texttt{/desafios}: lista com \texttt{musicasCount}
+  \item POST/PUT/DELETE \texttt{/desafios[/:id]}: criação/edição/exclusão com validação e sanitização
+  \item POST/DELETE \texttt{/desafio-musica}: vincula ou remove música, retornando \texttt{musicas} e \texttt{musicasCount}
+  \item GET \texttt{/deezer/search}, GET \texttt{/spotify/search}: sugestões para adicionar faixas
+\end{itemize}
+
+\subsection{Mecânica de Jogo}
+\begin{itemize}
+  \item POST \texttt{/game/start/:desafioId}: inicia sessão de jogo em memória e retorna primeira rodada
+  \item GET \texttt{/game/current/:sessionId}: retorna estado atual
+  \item POST \texttt{/game/guess/:sessionId}: avalia palpite, pontua e avança; ao fim, persiste tentativas
+\end{itemize}
+
+\subsection{Ranking e Perfil}
+\begin{itemize}
+  \item GET \texttt{/ranking/global}: agregação de pontos por usuário considerando somente execuções completas
+  \item GET \texttt{/profile/me}: métricas individuais (taxa de acerto, média de tempo, distribuição por dificuldade)
+\end{itemize}
+
+\section{Regras de Negócio e Implementação}
+\subsection{Validação e Sanitização}
+Entradas passam por \textit{sanitizers}: limite de tamanho (e remoção de caracteres de controle), \textit{normalização de dificuldade}, \textit{parse} seguro de inteiros e limpeza de consultas simples (busca Deezer/Spotify). URLs de capa aceitam http/https/data/blob/ipfs e caminhos relativos.
+
+\subsection{Jogo e Pontuação}
+A sessão de jogo mantém estado em memória: música atual, contadores de \textit{replay}, tempo decorrido, pontuação acumulada e \textit{streak}. A validação de acerto usa normalização (acentos, pontuação, parênteses) e \textit{fuzzy matching} (substrings, tokens e distância de Levenshtein com limiares por tamanho). Pontos combinam base por dificuldade e bônus por rapidez.
+
+Ao finalizar o desafio, o backend persiste \textbf{todas as tentativas} daquela execução (uma por música). Se o usuário desistir antes do fim, nada é gravado, simplificando consistência para ranking.
+
+\subsection{Ranking}
+A agregação considera apenas execuções completas. Pontos por desafio/usuário são contabilizados uma única vez (primeira execução completa), enquanto métricas descritivas (acertos, acurácia, média de tempo) são derivadas das tentativas persistidas.
+
+\section{Comunicação com o Frontend}
+\subsection{Padrões de Resposta}
+O backend retorna DTOs estáveis e erros padronizados (\texttt{code}, \texttt{message}). O frontend usa Axios com baseURL e interceptador 401 para \textit{logout}. Ao adicionar/remover músicas de um desafio, o backend já retorna lista atualizada e \texttt{musicasCount}, evitando \textit{overfetch}.
+
+\subsection{Fluxos Exemplares}
+\paragraph{Adicionar música no admin} Busca com debounce em \texttt{/deezer/search}; seleção dispara \texttt{/desafio-musica} e a resposta atualiza a UI (lista + contador).
+
+\paragraph{Jogar um desafio} Lista de desafios → \texttt{/game/start} → rodadas com avaliação em \texttt{/game/guess} → persistência ao fim → tela de resumo.
+
+\section{Execução e Implantação}
+\subsection{Ambiente de Desenvolvimento}
+\begin{enumerate}
+  \item Configurar \texttt{backend/.env} com \texttt{DATABASE\_URL}, \texttt{JWT\_SECRET} e porta
+  \item Rodar migrações: \texttt{npx prisma migrate dev} e gerar client: \texttt{npx prisma generate}
+  \item Iniciar backend (\texttt{npm run dev} em \texttt{backend/}) e frontend (\texttt{npm run dev} na raiz)
+\end{enumerate}
+
+\subsection{Banco de Dados}
+Suporte a SQLite (\texttt{file:./dev.db}) e PostgreSQL (\texttt{postgresql://...}). Em mudanças estruturais, usar \texttt{migrate dev} ou \texttt{migrate reset} em ambiente local.
+
+\section{Discussão}
+As decisões de persistir somente após a conclusão do desafio, empacotar contadores no DTO e consolidar a validação/sanitização no backend reduzem complexidade no cliente e previnem inconsistências. O uso de Prisma oferece produtividade e segurança de tipos, enquanto o desenho dos endpoints favorece uma experiência fluida no frontend (UI otimista e sobreposições de feedback unificadas).
+
+\section{Conclusão}
+Apresentamos a arquitetura e implementação do backend do \textit{web2-musicalGame}, detalhando suas camadas, modelos, regras e contratos com o frontend. Como trabalhos futuros, sugerimos adicionar testes automatizados (unitários e de integração), métricas de observabilidade e suporte a sessões distribuídas.
+
+\section*{Agradecimentos}
+Agradecemos à equipe e aos docentes envolvidos no desenvolvimento e testes do projeto.
+
+\section{Camadas do Backend com Exemplos}
+\subsection{Servidor Express e Rotas}
+\begin{lstlisting}[style=code, language=JavaScript]
+// backend/src/server.js
+import express from "express";
+import cors from "cors";
+import process from "process";
+import authRoutes from "./routes/auth.routes.js";
+import desafioRoutes from "./routes/desafio.routes.js";
+import spotifyRoutes from "./routes/spotify.routes.js";
+import desafioMusicaRoutes from "./routes/desafioMusica.routes.js";
+import metaRoutes from "./routes/meta.routes.js";
+import gameRoutes from "./routes/game.routes.js";
+import deezerRoutes from './routes/deezer.routes.js';
+import profileRoutes from './routes/profile.routes.js';
+import rankingRoutes from './routes/ranking.routes.js';
+
+const app = express();
+app.use(cors());
+app.use(express.json());
+app.use("/auth", authRoutes);
+app.use("/desafios", desafioRoutes);
+app.use("/spotify", spotifyRoutes);
+app.use("/desafio-musica", desafioMusicaRoutes);
+app.use("/meta", metaRoutes);
+app.use('/game', gameRoutes);
+app.use('/deezer', deezerRoutes);
+app.use('/profile', profileRoutes);
+app.use('/ranking', rankingRoutes);
+app.get("/ping", (req, res) => res.json({ message: "Servidor rodando!" }));
+app.listen(process.env.PORT||3000);
+\end{lstlisting}
+
+\subsection{Middleware de Autenticação (JWT)}
+\begin{lstlisting}[style=code, language=JavaScript]
+// backend/src/middlewares/auth.middleware.js
+import { verificarToken } from "../utils/token.js";
+export const autenticar = async (req, res, next) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader) return res.status(401).json({ erro: "Token não fornecido" });
+  const [tipo, token] = authHeader.split(" ");
+  if (tipo !== "Bearer" || !token) return res.status(401).json({ erro: "Token mal formatado" });
+  try { req.usuario = verificarToken(token); next(); }
+  catch { return res.status(401).json({ erro: "Token inválido" }); }
+}
+\end{lstlisting}
+
+\subsection{Validação e Sanitização}
+\begin{lstlisting}[style=code, language=JavaScript]
+// backend/src/utils/validation.js
+export const LIMITES = { MAX_TITULO: 100, MAX_GENERO: 50, MAX_MUSICAS_DESAFIO: 50 };
+export function limitarTamanho(v, max=255) {
+  if (typeof v !== 'string') return '';
+  let s=''; for (let i=0;i<v.length;i++){ const c=v.charCodeAt(i); if (c<32 && c!==9 && c!==10 && c!==13) continue; s+=v[i]; }
+  s=s.trim(); return s.length>max? s.slice(0,max): s;
+}
+export function sanitizeBuscaSimples(v,max=80){ if(typeof v!=='string') return ''; let s=v.normalize('NFD').replace(/[^\p{L}\p{N}\s'\-_.]/gu,'').replace(/\s+/g,' ').trim(); return s.length>max? s.slice(0,max): s; }
+export function normalizarDificuldade(v){ const up=String(v||'').trim().toUpperCase(); const ok=['FACIL','MEDIO','DIFICIL','MUITO_DIFICIL','EXTREMO']; return ok.includes(up)? up:'FACIL'; }
+\end{lstlisting}
+
+\subsection{Controller de Desafios}
+\begin{lstlisting}[style=code, language=JavaScript]
+// backend/src/controllers/desafio.controller.js (trecho)
+function toDesafioDTO(d){ return { id:d.id, titulo:d.titulo, genero:d.genero, dificuldade:d.dificuldade, desafioCapa:d.desafioCapa, musicasCount:d._count?.musicas??0, createdAt:d.createdAt, updatedAt:d.updatedAt }; }
+export const listarDesafios = async (req,res)=>{ const ds= await prisma.desafio.findMany({ include:{ _count:{ select:{ musicas:true } } }, orderBy:{ id:'desc' } }); res.json(ds.map(toDesafioDTO)); };
+export const criarDesafio = async (req,res)=>{ let { titulo, genero, dificuldade, desafioCapa, capa }=req.body; if(!desafioCapa&&capa) desafioCapa=capa; titulo=sanitizeTexto(titulo,LIMITES.MAX_TITULO); genero=sanitizeTexto(genero,LIMITES.MAX_GENERO); dificuldade=normalizarDificuldade(dificuldade); /* valida capa... */ const novo= await prisma.desafio.create({ data:{ titulo, genero, dificuldade, desafioCapa: desafioCapa||null }, include:{ _count:{ select:{ musicas:true } } } }); res.status(201).json(toDesafioDTO(novo)); };
+\end{lstlisting}
+
+\subsection{Controller de Jogo e Regras}
+\begin{lstlisting}[style=code, language=JavaScript]
+// backend/src/controllers/game.controller.js (trecho)
+const DIFFICULTY_CONFIG = { FACIL:{snippetSeconds:10,base:8,maxBonus:12}, MEDIO:{snippetSeconds:7,base:12,maxBonus:18}, DIFICIL:{snippetSeconds:5,base:18,maxBonus:27}, MUITO_DIFICIL:{snippetSeconds:3,base:26,maxBonus:39}, EXTREMO:{snippetSeconds:2,base:38,maxBonus:57} };
+function normalizarTexto(t){ return (t||'').toLowerCase().normalize('NFD').replace(/[^\p{L}\p{N}\s]/gu,'').replace(/\s+/g,' ').trim(); }
+export async function submitGuess(req,res){ const { sessionId }=req.params; const answerSan=limitarTamanho(req.body.answer,120); const s=sessions.get(sessionId); const track=s.tracks[s.current]; const tituloBase=track.titulo.replace(/\([^)]*\)/g,' ');
+  const a=normalizarTexto(answerSan), b=normalizarTexto(tituloBase); let correta=false; if(a===b||b.includes(a)||a.includes(b)) correta=true; else { /* tokens + levenshtein + similarity */ }
+  // calcula bonus por tempo (janela = snippetSeconds), soma a score e acumula tentativa; persiste no final da execução.
+  res.json({ correta, titulo: track.titulo, artista: track.artista, score: s.score, round: s.current+1, totalRounds: s.tracks.length, finished: s.current>=s.tracks.length }); }
+\end{lstlisting}
+
+\section{Comunicação Frontend↔Backend com Exemplos}
+\subsection{Cliente HTTP}
+\begin{lstlisting}[style=code, language=JavaScript]
+// src/services/api.js
+import axios from 'axios';
+export const api = axios.create({ baseURL: 'http://localhost:3000' });
+// AuthProvider injeta Authorization quando disponível
+\end{lstlisting}
+
+\subsection{Hook de Administração de Desafios}
+\begin{lstlisting}[style=code, language=JavaScript]
+// src/hooks/useDesafios.js (trecho)
+export function useDesafios(){
+  const [desafios,setDesafios]=useState([]);
+  const carregar=useCallback(async()=>{ const {data}=await api.get('/desafios'); setDesafios(data); },[]);
+  const criar=useCallback(async(p)=>{ const {data}=await api.post('/desafios',p); setDesafios(prev=>[data,...prev]); return data; },[]);
+  const atualizar=useCallback(async(id,p)=>{ const {data}=await api.put(`/desafios/${id}`,p); setDesafios(prev=> prev.map(d=> d.id===id? {...d,...data}: d)); return data; },[]);
+  const remover=useCallback(async(id)=>{ await api.delete(`/desafios/${id}`); setDesafios(prev=> prev.filter(d=> d.id!==id)); },[]);
+  return { desafios, carregar, criar, atualizar, remover };
+}
+\end{lstlisting}
+
+\subsection{Fluxo de Jogo no Frontend}
+\begin{lstlisting}[style=code, language=JavaScript]
+// src/pages/PlayDesafio.jsx (trecho)
+useEffect(()=>{ (async()=>{ const {data}= await api.post(`/game/start/${id}`); setSession(data); })(); },[id]);
+async function submit(e){ e.preventDefault(); const { data } = await api.post(`/game/guess/${session.sessionId}`, { answer }); setFeedback({ correta:data.correta, titulo:data.titulo, artista:data.artista }); if(data.finished){ /* exibir resumo */ } else { const { data: next } = await api.get(`/game/current/${session.sessionId}`); setCurrent(next); } }
+\end{lstlisting}
+
+\section{Contratos e Erros Padronizados}
+\begin{itemize}
+  \item Sucesso: objetos DTO estáveis (\texttt{DesafioDTO}, listas de músicas com \texttt{musicasCount}).
+  \item Erro: \texttt{\{ error: { code, message } \}} com HTTP adequado (400/401/403/404/500).
+\end{itemize}
+
+\section{Execução Local}
+\begin{lstlisting}[style=code, language=]
+# backend/.env (SQLite)
+DATABASE_URL="file:./dev.db"
+JWT_SECRET="sua_chave"
+PORT=3000
+
+# Migrações e client
+npx prisma migrate dev
+npx prisma generate
+
+# Rodar
+npm run dev  # em backend/
+# e na raiz
+npm run dev
+\end{lstlisting}
+
+\section{Tabela de Endpoints da API}
+\begingroup
+\small
+\setlength{\tabcolsep}{4pt}% menos espaço horizontal entre colunas
+\renewcommand{\arraystretch}{1.15}% linhas um pouco mais altas
+\begin{longtable}{@{} l l c p{0.32\textwidth} p{0.40\textwidth} @{}}
+\caption{Resumo dos principais endpoints, com contratos de requisição e resposta.}\label{tab:endpoints}\\
+\toprule
+\textbf{Método} & \textbf{Rota} & \textbf{Auth} & \textbf{Corpo (req)} & \textbf{Resposta (res)} \\
+\midrule
+\endfirsthead
+\toprule
+\textbf{Método} & \textbf{Rota} & \textbf{Auth} & \textbf{Corpo (req)} & \textbf{Resposta (res)} \\
+\midrule
+\endhead
+\bottomrule
+\endfoot
+\bottomrule
+\endlastfoot
+
+POST & /auth/register & -- & \texttt{\{ nome, email, senha \}} & \texttt{\{ user, token \}} \\
+POST & /auth/login & -- & \texttt{\{ email, senha \}} & \texttt{\{ user, token \}} \\
+POST & /auth/google & -- & \texttt{\{ credential \}} & \texttt{\{ user, token \}} \\
+\midrule
+GET & /desafios & opcional & -- & \texttt{[ DesafioDTO ]} \\
+POST & /desafios & admin & \texttt{\{ titulo, genero, dificuldade, desafioCapa? \}} & \texttt{DesafioDTO} \\
+PUT & /desafios/:id & admin & \texttt{\{ titulo?, genero?, dificuldade?, desafioCapa? \}} & \texttt{DesafioDTO} \\
+DELETE & /desafios/:id & admin & -- & \texttt{\{ message, desafio \}} \\
+\midrule
+GET & /desafio-musica/:id & admin & -- & \texttt{[ MusicaDTO ]} \\
+POST & /desafio-musica/:id & admin & \texttt{\{ deezerId \}|\{ musicaNome, artistaNome? \}} & \texttt{\{ musicas: [MusicaDTO], musicasCount \}} \\
+DELETE & /desafio-musica/:id & admin & \texttt{\{ deezerId \}|\{ musicaNome, artistaNome? \}} & \texttt{\{ ok, musicasCount, musicas: [MusicaDTO] \}} \\
+\midrule
+GET & /deezer/search & admin & \texttt{?nome, ?artista} & \texttt{[ MusicaDTO ]} \\
+GET & /spotify/search & admin & \texttt{?query} & \texttt{[ ... ]} \\
+\midrule
+POST & /game/start/:desafioId & user & -- & \texttt{\{ sessionId, totalRounds, dificuldade, snippetSeconds \}} \\
+GET & /game/current/:sessionId & user & -- & \texttt{\{ round, totalRounds, preview, artista, imagem, snippetSeconds, score \}} \\
+POST & /game/guess/:sessionId & user & \texttt{\{ answer \}} & \texttt{\{ correta, matchType?, titulo, artista, score, pontosGanhos?, pontosBase?, bonusTempo?, round, totalRounds, tempoResposta, finished? \}} \\
+\midrule
+GET & /ranking/global & -- & \texttt{?limit, ?offset, ?dificuldade, ?periodo} & \texttt{[ \{ usuarioId, nome, pontos, acertos, mediaTempo, acuracia \} ]} \\
+GET & /profile/me & user & -- & \texttt{\{ ...stats \}} \\
+\end{longtable}
+\endgroup
+
+\section{Diagrama de Sequ\^encia (Fluxo de Jogo)}
+Para fins de compila\c{c}\~ao simples no Overleaf sem pacotes extras, representamos o diagrama de sequ\^encia como pseudoc\'odigo.
+
+\begin{lstlisting}[style=code, language=]
+Participantes: Frontend, API, Prisma/DB, Deezer
+
+Frontend -> API: POST /game/start/:desafioId
+API -> Prisma/DB: findUnique(desafio, include: musicas)
+loop para cada musica
+  API -> Deezer: buscarMusicaDeezerPorId(deezerId)
+end
+API: embaralha(tracks), cria sessão em memória
+API -> Frontend: { sessionId, totalRounds, dificuldade, snippetSeconds }
+
+Frontend -> API: GET /game/current/:sessionId
+API: recupera sessão, marca roundStartedAt
+API -> Frontend: { round, totalRounds, preview, artista, imagem, snippetSeconds, score }
+
+Frontend -> API: POST /game/guess/:sessionId { answer }
+API: normaliza(answer), compara(titulo)
+alt correta
+  API: calcula bonusTempo e pontosGanhos; score +=
+else erro
+  API: pontosGanhos = 0
+end
+API: acumula tentativa em memória (guesses)
+API: avança s.current; se acabou -> finished=true e persiste tentativas createMany
+API -> Prisma/DB: createMany(tentativas[]) (somente ao final)
+API -> Frontend: { correta, matchType?, titulo, artista, score, round, totalRounds, tempoResposta, finished? }
+
+Frontend: se finished -> exibe resumo e botões Reiniciar/Outro desafio/Home
+\end{lstlisting}
+
+\end{document}

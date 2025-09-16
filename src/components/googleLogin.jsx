@@ -73,8 +73,8 @@ export function LoginGoogleCustom() {
                   error: 'Erro no login'
                 }}
                 variantClasses={{
-                  idle: 'bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-800 dark:text-gray-100 hover:bg-gray-50 dark:hover:bg-gray-800',
-                  loading: 'bg-white dark:bg-gray-900 border border-gray-300 dark:border-gray-700 text-gray-600 dark:text-gray-400 cursor-wait',
+                  idle: 'bg-white/80 dark:bg-gray-900 border border-slate-300 dark:border-gray-700 text-slate-800 dark:text-gray-100 hover:bg-slate-200 dark:hover:bg-gray-800',
+                  loading: 'bg-white/70 dark:bg-gray-900 border border-slate-300 dark:border-gray-700 text-slate-600 dark:text-gray-400 cursor-wait',
                   success: 'bg-green-600 text-white hover:bg-green-500',
                   error: 'bg-red-600 text-white hover:bg-red-500'
                 }}

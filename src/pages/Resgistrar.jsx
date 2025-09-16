@@ -3,6 +3,7 @@ import { useNavigate, Link } from 'react-router-dom';
 import { api } from '../services/api';
 import BotaoAnimado from '../components/reusable/botaoAnimado';
 import { useAuth } from '../hooks/useAuth';
+import ThemeToggle from '../components/reusable/ThemeToggle';
 
 export default function Registrar() {
     const [form, setForm] = useState({ nome: '', email: '', senha: '', confirmar: '' });
@@ -59,6 +60,9 @@ export default function Registrar() {
 
     return (
         <div className="min-h-screen relative flex items-center justify-center px-4 py-16 bg-gradient-to-b from-white via-slate-50 to-white dark:from-black dark:via-zinc-950 dark:to-black overflow-hidden">
+            <div className="absolute top-4 right-4 z-10">
+                <ThemeToggle />
+            </div>
             <div className="pointer-events-none select-none absolute inset-0 opacity-[0.12] dark:opacity-[0.22]">
                 <div className="absolute -top-32 -right-24 w-80 h-80 bg-gradient-to-br from-indigo-500/60 to-fuchsia-500/60 blur-3xl rounded-full" />
                 <div className="absolute bottom-[-6rem] left-[-4rem] w-72 h-72 bg-gradient-to-br from-sky-400/50 to-emerald-400/50 blur-3xl rounded-full" />

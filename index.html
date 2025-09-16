@@ -4,14 +4,18 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/src/assets/icon-light.png" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>MusicGuesser</title>
+    <title>MusicGuessr</title>
     <script>
       (function(){
         try {
-          var stored = localStorage.getItem('theme');
-          var prefersDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
-            var theme = stored || (prefersDark ? 'dark' : 'light');
-            if(theme === 'dark') document.documentElement.classList.add('dark');
+          var d = document.documentElement;
+          var stored = localStorage.getItem('theme'); // 'light' | 'dark' | 'system' | null
+          var mql = window.matchMedia('(prefers-color-scheme: dark)');
+          var systemDark = mql.matches;
+          var wantDark = stored === 'dark' || (stored !== 'light' && systemDark);
+          if (wantDark) d.classList.add('dark'); else d.classList.remove('dark');
+          d.style.colorScheme = wantDark ? 'dark' : 'light';
+          d.setAttribute('data-theme', wantDark ? 'dark' : 'light');
         } catch(e){}
       })();
     </script>

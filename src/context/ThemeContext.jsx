@@ -17,13 +17,15 @@ export function ThemeProvider({ children }) {
   const [theme, setTheme] = useState('system');
   const [resolvedTheme, setResolvedTheme] = useState('light');
 
-  // Aplica classe no <html>
+  // Aplica classe e color-scheme no <html>
   const applyClass = useCallback((value) => {
     const root = document.documentElement;
     if (value === 'dark') root.classList.add('dark'); else root.classList.remove('dark');
+    root.style.colorScheme = value === 'dark' ? 'dark' : 'light';
+    root.setAttribute('data-theme', value === 'dark' ? 'dark' : 'light');
   }, []);
 
-  // Inicialização
+  // Inicialização: respeita valor no localStorage ('light'|'dark'|'system')
   useEffect(() => {
     const stored = localStorage.getItem(STORAGE_KEY);
     const initial = stored || 'system';
@@ -57,6 +59,7 @@ export function ThemeProvider({ children }) {
     if (theme) localStorage.setItem(STORAGE_KEY, theme);
   }, [theme, applyClass]);
 
+  // Alterna sempre entre 'dark' e 'light' explicitamente; para voltar ao sistema, exponha setTheme('system') na UI.
   const toggleTheme = useCallback(() => {
     setTheme(prev => {
       const current = prev === 'system' ? getSystemPreference() : prev;
