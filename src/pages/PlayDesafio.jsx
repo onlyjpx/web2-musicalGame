@@ -3,6 +3,7 @@ import { motion as _m, AnimatePresence } from 'motion/react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { api } from '../services/api';
 import { useAuth } from '../hooks/useAuth';
+import { playCorrectSfx, playWrongSfx, playCompleteSfx } from '../utils/sfx.js';
 
 export default function PlayDesafio() {
   const { id } = useParams();
@@ -200,6 +201,7 @@ export default function PlayDesafio() {
       setPreviousGuesses(prev => [...prev, { texto, correta: data.correta, matchType: data.matchType }]);
       // Streak logic
       if (data.correta) {
+        playCorrectSfx();
         setAcertos(a=> a+1);
         const within = streakStartRef.current && (Date.now() - streakStartRef.current) <= streakWindowRef.current;
         setStreak(prev => {
@@ -208,6 +210,7 @@ export default function PlayDesafio() {
           return next;
         });
       } else {
+        playWrongSfx();
         setErros(e=> e+1);
         setStreak(0);
       }
@@ -226,7 +229,10 @@ export default function PlayDesafio() {
         clearSnippetTimer();
         setFinalScore(data.score);
         // pequena espera para permitir ver feedback e animação de score
-        setTimeout(() => setPendingFinal(true), 500);
+        setTimeout(() => {
+          playCompleteSfx();
+          setPendingFinal(true);
+        }, 500);
       } else {
         // Carregar próxima após pequeno delay
         setTimeout(async () => {
