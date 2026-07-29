@@ -1,3 +1,4 @@
+import { useEffect } from "react";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 
 import Home from "./pages/Home";
@@ -9,8 +10,17 @@ import GameSelect from './pages/GameSelect.jsx';
 import ProtectedRoute from './components/ProtectedRoute.jsx';
 import Profile from './pages/Profile.jsx';
 import Ranking from './pages/Ranking.jsx';
+import { playClickSfx } from './utils/sfx.js';
 
 export default function App() {
+  useEffect(() => {
+    const handleClick = (e) => {
+      if (e.target.closest('button')) playClickSfx();
+    };
+    document.addEventListener('click', handleClick, true);
+    return () => document.removeEventListener('click', handleClick, true);
+  }, []);
+
   return (
     <BrowserRouter>
       <Routes>
