@@ -2,7 +2,7 @@ import prisma from '../prisma/client.js';
 import { buscarMusicaDeezerPorId } from '../services/deezer.service.js';
 import { limitarTamanho } from '../utils/validation.js';
 
-// Sessões em memória (MVP). Em produção, usar Redis ou outra forma de persistência.
+// Sessões em memória (MVP).
 const sessions = new Map();
 
 // Configurações de jogo por dificuldade

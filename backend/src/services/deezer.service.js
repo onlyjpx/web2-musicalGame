@@ -37,7 +37,6 @@ export const buscarMusicaDeezerPorId = async (deezerId) => {
         titulo: response.data.title,
         artista: response.data.artist.name,
         album: alb.title,
-    // Usa a maior capa disponível (xl -> big -> medium -> normal -> small)
         imagem: alb.cover_xl || alb.cover_big || alb.cover_medium || alb.cover || alb.cover_small || null,
         preview: response.data.preview,
         duracao: response.data.duration,

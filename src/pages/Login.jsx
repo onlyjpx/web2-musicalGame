@@ -101,8 +101,8 @@ export default function Login() {
               error: 'Tentar novamente'
             }}
             variantClasses={{
-              idle: 'bg-gradient-to-r from-brand-600 to-purple-600 hover:from-brand-500 hover:to-purple-500 text-white shadow',
-              loading: 'bg-gradient-to-r from-brand-600 to-purple-600 text-white opacity-80 cursor-wait',
+              idle: 'bg-indigo-600 dark:bg-gray-900 border border-slate-300 dark:border-gray-700 text-slate-800 dark:text-gray-100 hover:bg-indigo-800 hover:text-slate-100 dark:hover:bg-gray-800',
+              loading: 'bg-white/70 dark:bg-gray-900 border border-slate-300 dark:border-gray-700 text-slate-600 dark:text-gray-400 cursor-wait',
               success: 'bg-green-600 text-white hover:bg-green-500',
               error: 'bg-red-600 text-white hover:bg-red-500'
             }}

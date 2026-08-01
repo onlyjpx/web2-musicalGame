@@ -1,0 +1,12 @@
+Entrega do protótipo:
+- Relatório em MD e TEX prontos.
+- One-sheet em TEX pronto.
+- Build web gerado em dist/.
+- Web build verificado em dist/ com index.html, assets e sounds.
+- Para entrega, o executável web corresponde ao conteúdo de dist/ (ou um ZIP dessa pasta).
+- O launcher será ajustado para abrir frontend e backend em modo dev, sem reinstalar tudo se node_modules já existir.
+- O launcher agora abre frontend e backend em modo dev, usando a raiz como frontend e `backend/` como API.
+- Falta: converter o relatório TEX em PDF e anexar no Moodle.
+- Falta: anexar o link do Git e o link do protótipo/web deploy na entrega final.
+- Falta: revisar a participação de cada integrante no relatório, se quiser deixar mais formal.
+- Opcional: limpar o aviso do Tailwind @custom-variant no editor, embora o build já tenha passado.

@@ -1,0 +1,159 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{parskip}
+\usepackage{hyperref}
+\usepackage{enumitem}
+\usepackage{longtable}
+\usepackage{array}
+\usepackage{xcolor}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+\title{Relatório de Desenvolvimento do Protótipo Funcional\\\large 3\textsuperscript{o} Trabalho de Introdução ao Desenvolvimento de Jogos}
+\author{João Pedro Araújo \and Túlio Mota Lima \and Rafael Luiz \and Otávio}
+\date{31/07}
+
+\begin{document}
+\maketitle
+
+\section*{Identificação}
+\textbf{Jogo:} Music Guessr\\
+\textbf{Disciplina:} Introdução ao Desenvolvimento de Jogos\\
+\textbf{Entrega:} Protótipo funcional + relatório de desenvolvimento
+
+\section*{1. Visão geral do protótipo}
+O protótipo é um jogo musical web em que o jogador ouve trechos curtos de músicas e digita a resposta para pontuar. O sistema usa autenticação, ranking, painel administrativo e um fluxo de jogo baseado em rodada, tentativa e pontuação.
+
+O projeto foi implementado como aplicação web, com frontend em React + Vite e backend em Node.js + Express + Prisma, usando PostgreSQL para persistência.
+
+\section*{2. Objetivo de desenvolvimento}
+Construir um protótipo funcional que entregasse:
+\begin{itemize}[leftmargin=1.2em]
+  \item interação lúdica significativa;
+  \item core loop fluido;
+  \item feedback visual e sonoro imediato;
+  \item estabilidade técnica;
+  \item ranking e persistência de desempenho;
+  \item área administrativa para criar e organizar desafios.
+\end{itemize}
+
+\section*{3. Tecnologias utilizadas}
+\subsection*{Frontend}
+\begin{itemize}[leftmargin=1.2em]
+  \item React + Vite
+  \item React Router
+  \item Motion / Framer Motion
+  \item Tailwind CSS
+  \item Axios
+\end{itemize}
+
+\subsection*{Backend}
+\begin{itemize}[leftmargin=1.2em]
+  \item Node.js + Express
+  \item Prisma ORM
+  \item PostgreSQL
+  \item JWT para autenticação
+  \item OAuth Google
+  \item Integração com Deezer para busca e preview de músicas
+\end{itemize}
+
+\section*{4. Arquitetura do protótipo}
+\subsection*{4.1 Frontend}
+O frontend concentra as telas de login, registro, home, seleção de desafio, partida, ranking, perfil e área administrativa. A interface usa componentes reutilizáveis, animações de feedback e tema claro/escuro.
+
+\subsection*{4.2 Backend}
+O backend organiza autenticação, desafios, sessão de jogo, ranking, perfil e estatísticas. O jogo usa sessões em memória para controlar rodada atual, score e feedback durante a partida.
+
+\subsection*{4.3 Banco de dados}
+O modelo de dados inclui:
+\begin{itemize}[leftmargin=1.2em]
+  \item \texttt{Usuario}
+  \item \texttt{Desafio}
+  \item \texttt{DesafioMusica}
+  \item \texttt{Tentativa}
+\end{itemize}
+
+Esses modelos sustentam usuários, desafios, músicas vinculadas e histórico de pontuação.
+
+\section*{5. Como o jogo funciona}
+\begin{enumerate}[leftmargin=1.4em]
+  \item O jogador entra no sistema e faz login ou cadastro.
+  \item Escolhe um desafio musical disponível.
+  \item O sistema carrega o preview da música da rodada.
+  \item O jogador digita o palpite.
+  \item O backend valida a resposta com regras que toleram pequenas variações.
+  \item Se acertar, recebe pontuação base + bônus por velocidade.
+  \item O jogo avança para a próxima rodada.
+  \item Ao final, as tentativas são persistidas e o ranking é atualizado.
+\end{enumerate}
+
+\section*{6. Critérios do professor e atendimento no protótipo}
+\subsection*{6.1 Interação lúdica significativa e arquitetura de código}
+Atendido. Cada ação do jogador gera retorno claro e imediato: envio de palpite, feedback de acerto ou erro, atualização da pontuação, avanço de rodada e finalização da sessão.
+
+A arquitetura está separada em rotas, controllers, hooks e componentes reutilizáveis.
+
+\subsection*{6.2 Calibração do flow e core loop}
+Atendido. O ciclo principal está implementado e operacional:
+\begin{quote}
+Ouvir trecho $\rightarrow$ responder $\rightarrow$ receber feedback $\rightarrow$ avançar $\rightarrow$ finalizar sessão.
+\end{quote}
+
+A dificuldade altera a janela do trecho, o ritmo da partida e a pontuação, ajudando a manter o jogador engajado.
+
+\subsection*{6.3 Integração estética e sonoplastia}
+Atendido. O protótipo possui identidade visual consistente, animações de feedback, sinais sonoros de acerto, erro e conclusão, e interface que reforça a leitura do estado do jogo.
+
+\subsection*{6.4 Storytelling e UX}
+Atendido. A experiência é construída em torno da temática musical e da progressão por desafios. A interface permite leitura rápida do estado da partida e acesso direto às funções principais, sem excesso de fricção.
+
+\subsection*{6.5 Estabilidade técnica, versionamento e QA}
+Atendido em nível de protótipo web. O projeto possui build de frontend, backend funcional, autenticação, tratamento de erros em fluxos principais e repositório Git com histórico de desenvolvimento.
+
+\section*{7. Decisões tomadas durante o desenvolvimento}
+\begin{itemize}[leftmargin=1.2em]
+  \item Separação entre frontend e backend para organização do código.
+  \item Uso de Prisma + PostgreSQL para persistência relacional.
+  \item Sessão de jogo em memória para simplificar o protótipo.
+  \item Validação inteligente de respostas para reduzir frustração do jogador.
+  \item Pontuação com bônus de tempo para reforçar o ritmo do jogo.
+  \item Persistência apenas ao final da partida para manter o ranking coerente.
+  \item Painel admin para criar e organizar desafios.
+\end{itemize}
+
+\section*{8. Participação dos membros}
+\subsection*{João Pedro Araújo}
+Backend, autenticação, sessão de jogo e ranking.
+
+\subsection*{Rafael Luiz}
+Modelagem de dados, Prisma, persistência e integração de estatísticas.
+
+\subsection*{Túlio Mota Lima}
+Frontend, interface, fluxo visual e feedback de interação.
+
+\subsection*{Otávio}
+Telas e navegação, ajustes de usabilidade e refinamento visual.
+
+\section*{9. Entregáveis}
+\begin{itemize}[leftmargin=1.2em]
+  \item Relatório do desenvolvimento do protótipo.
+  \item Link do GitHub.
+  \item Código-fonte completo.
+  \item Protótipo funcional em execução web.
+\end{itemize}
+
+\section*{10. Conclusão}
+O protótipo entregue demonstra o core loop do jogo, a integração entre interface e backend, a persistência do desempenho e a possibilidade de evolução para novas funcionalidades. O projeto atende ao objetivo de apresentar um jogo funcional, jogável e coerente com os critérios do trabalho.
+
+\section*{Observação para submissão}
+Este relatório foi preparado para conversão em PDF. A versão em \texttt{.tex} está pronta para compilação.
+
+\end{document}

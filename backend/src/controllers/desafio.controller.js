@@ -44,7 +44,7 @@ export const criarDesafio = async (req, res) => {
                 desafioCapa = null; // limpa se inválida
             } else {
                 const reachable = await verificarReachable(valid);
-                if (!reachable) desafioCapa = null; // opcional: silenciar ao invés de erro
+                if (!reachable) desafioCapa = null; // isso daqui vai silenciar o erro, é opcional
             }
         }
 

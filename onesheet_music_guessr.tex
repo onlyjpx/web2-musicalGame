@@ -1,0 +1,51 @@
+\documentclass[12pt,a4paper]{article}
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[brazil]{babel}
+\usepackage[margin=2.4cm]{geometry}
+\usepackage{parskip}
+\usepackage{hyperref}
+\usepackage{xcolor}
+
+\hypersetup{
+  colorlinks=true,
+  linkcolor=blue,
+  urlcolor=blue,
+  citecolor=blue
+}
+
+\title{One-Sheet do Projeto \textit{Music Guessr}}
+\author{João Pedro Araújo, Túlio Mota, Rafael Luiz, Otávio}
+\date{}
+
+\begin{document}
+\maketitle
+
+\section*{Título do Projeto}
+Music Guessr
+
+\section*{Gênero}
+Trivia musical / quiz competitivo web
+
+\section*{Plataforma-Alvo e Tecnologia}
+Aplicação exclusivamente web, acessada pelo navegador em desktop e notebook. O projeto é desenvolvido com frontend em React + Vite e backend em Node.js + Express + Prisma, com banco PostgreSQL. Não há suporte a aplicativo mobile nativo.
+
+\section*{Público-Alvo}
+Jovens e adultos que gostam de música, jogos casuais e competição social. O jogo também atende estudantes, professores e grupos que desejam usar quizzes musicais como atividade de aula, dinâmica de sala ou entretenimento em eventos.
+
+\section*{Frase de Efeito}
+Teste seu ouvido, adivinhe a música em segundos e suba no ranking antes que os outros peguem a resposta certa.
+
+\section*{Visão Geral da Jogabilidade}
+O jogador escolhe um desafio musical e recebe trechos curtos de áudio. A cada rodada, ele digita o título da música e o sistema valida a resposta com regras de comparação tolerantes a pequenas variações, como acentos, troca de palavras e erros de digitação. A pontuação depende da dificuldade do desafio e da velocidade da resposta. Ao final da partida, o sistema registra o desempenho e atualiza o ranking global.
+
+Além do modo de jogo, existe um painel administrativo para criar desafios, definir dificuldades, vincular músicas e organizar capas e metadados. O conteúdo é alimentado por integração com serviços externos de música, como Deezer e Spotify.
+
+\section*{Diferenciais Competitivos}
+\textbf{1. Validação inteligente de respostas.} O jogo não exige correspondência literal em todos os casos. O backend aplica normalização de texto, comparação por tokens e distância de Levenshtein para aceitar respostas próximas sem perder o desafio.
+
+\textbf{2. Progressão por dificuldade com pontuação dinâmica.} As dificuldades ajustam a janela do trecho, a rigidez da validação e a pontuação base. Isso permite criar partidas acessíveis para iniciantes e mais exigentes para jogadores experientes.
+
+\textbf{3. Estrutura de conteúdo e competição.} O sistema inclui painel admin para criação de desafios, ranking global e métricas agregadas de jogo. Isso facilita operação contínua, curadoria de conteúdo e engajamento recorrente.
+
+\end{document}
