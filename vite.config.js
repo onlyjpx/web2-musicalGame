@@ -11,5 +11,14 @@ export default defineConfig({
   server: {
     host: true, // permite acesso pela rede (0.0.0.0, pra usar o Network)
     port: 5173,
+    proxy: {
+      // Redireciona chamadas para /api ao backend remoto para evitar CORS em dev
+      '/api': {
+        target: 'https://web2-musicalgame.onrender.com',
+        changeOrigin: true,
+        secure: true,
+        rewrite: (path) => path.replace(/^\/api/, ''),
+      },
+    },
   }
 })
