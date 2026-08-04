@@ -1,7 +1,7 @@
 import axios from 'axios';
 
 export const api = axios.create({
-  baseURL: 'http://localhost:3000',
+  baseURL: 'https://web2-musicalgame.onrender.com',
 });
 
 // Interceptor para tratar 401 e deslogar opcionalmente (poderíamos injetar depois)
